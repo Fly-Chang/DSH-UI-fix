@@ -1,0 +1,4 @@
+# dsh-plugin-health bundle patch: inserts its plugin row into the web profile.
+- insert:
+    - id: dsh-plugin-health
+      name: '@linxin666/dsh-plugin-health'
