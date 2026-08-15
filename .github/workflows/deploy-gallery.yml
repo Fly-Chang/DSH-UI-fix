@@ -13,15 +13,6 @@ name: Deploy Gallery
 #   CLOUDFLARE_ACCOUNT_ID  — Cloudflare 账号 ID
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'gallery/**'
-      - 'packages/skins/**'
-      - 'scripts/deploy-gallery'
-      - 'package.json'
-      - '.github/workflows/deploy-gallery.yml'
   workflow_dispatch:
 
 permissions:
