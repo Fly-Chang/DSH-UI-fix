@@ -262,6 +262,7 @@ const rendered = await page.evaluate(async ({ cutoutDataUrl, COLS, ROWS, CW, CH,
         cell.width = CW
         cell.height = CH
         const cctx = cell.getContext('2d')
+        cctx.imageSmoothingEnabled = false
         const baseY = CH - MARGIN
         cctx.save()
         cctx.translate(CW / 2, baseY + p.bob)
@@ -282,6 +283,7 @@ const rendered = await page.evaluate(async ({ cutoutDataUrl, COLS, ROWS, CW, CH,
   base.width = dw
   base.height = dh
   const bctx = base.getContext('2d')
+  bctx.imageSmoothingEnabled = false
   bctx.drawImage(img, 0, 0, dw, dh)
   const lightBase = recolorLight(base)
   return { dark: buildAtlas(base), light: buildAtlas(lightBase) }

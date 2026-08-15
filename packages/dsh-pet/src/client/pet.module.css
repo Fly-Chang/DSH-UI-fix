@@ -10,7 +10,7 @@
 
 .sprite {
   position: relative;
-  image-rendering: auto;
+  image-rendering: pixelated;
   touch-action: none;
 }
 
