@@ -41,24 +41,44 @@ const cutout = await page.evaluate(async ({ sourceDataUrl, COLS, ROWS, CW, CH })
   const data = id.data
   const w = canvas.width
   const h = canvas.height
-  const visited = new Uint8Array(w * h)
-  const queue = new Int32Array(w * h * 2)
-  let head = 0
-  let tail = 0
-  const push = (x, y) => {
-    if (visited[y * w + x]) return
-    visited[y * w + x] = 1
-    queue[tail++] = x
-    queue[tail++] = y
-  }
-  const isBackground = (x, y) => {
+
+  // Remove the two checkerboard colors globally (white + light gray), then
+  // restore any transparent holes that are fully enclosed by the character.
+  const removed = new Uint8Array(w * h)
+  const isChecker = (x, y) => {
     const i = (y * w + x) * 4
     const r = data[i]
     const g = data[i + 1]
     const b = data[i + 2]
-    const nearWhite = r > 232 && g > 232 && b > 232
-    const nearGray = Math.abs(r - g) < 16 && Math.abs(g - b) < 16 && r > 180 && r < 235
-    return nearWhite || nearGray
+    const mx = Math.max(r, g, b)
+    const mn = Math.min(r, g, b)
+    const neutral = mx - mn < 14
+    const nearWhite = mn >= 238
+    const nearCheckerGray = neutral && mn >= 165 && mx <= 255
+    return nearWhite || nearCheckerGray
+  }
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (isChecker(x, y)) {
+        const i = (y * w + x) * 4
+        data[i + 3] = 0
+        removed[y * w + x] = 1
+      }
+    }
+  }
+
+  // Flood the transparent outside from the border.
+  const outside = new Uint8Array(w * h)
+  const queue = new Int32Array(w * h * 2)
+  let head = 0
+  let tail = 0
+  const push = (x, y) => {
+    if (x < 0 || y < 0 || x >= w || y >= h) return
+    const idx = y * w + x
+    if (outside[idx] || !removed[idx]) return
+    outside[idx] = 1
+    queue[tail++] = x
+    queue[tail++] = y
   }
   for (let x = 0; x < w; x++) {
     push(x, 0)
@@ -71,14 +91,67 @@ const cutout = await page.evaluate(async ({ sourceDataUrl, COLS, ROWS, CW, CH })
   while (head < tail) {
     const x = queue[head++]
     const y = queue[head++]
-    if (!isBackground(x, y)) continue
-    const i = (y * w + x) * 4
-    data[i + 3] = 0
-    if (x > 0) push(x - 1, y)
-    if (x < w - 1) push(x + 1, y)
-    if (y > 0) push(x, y - 1)
-    if (y < h - 1) push(x, y + 1)
+    push(x - 1, y)
+    push(x + 1, y)
+    push(x, y - 1)
+    push(x, y + 1)
   }
+
+  // Restore interior holes (removed pixels the outside flood never reached).
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const idx = y * w + x
+      if (removed[idx] && !outside[idx]) data[idx * 4 + 3] = 255
+    }
+  }
+
+  // Keep only the largest opaque connected component: removes checkerboard
+  // remnants, antialiased edge flecks and any isolated islands.
+  const comp = new Int32Array(w * h).fill(-1)
+  const areas = []
+  let nextId = 0
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const idx = y * w + x
+      if (data[idx * 4 + 3] <= 8 || comp[idx] !== -1) continue
+      const id = nextId++
+      let area = 0
+      let head2 = 0
+      let tail2 = 0
+      comp[idx] = id
+      queue[tail2++] = x
+      queue[tail2++] = y
+      while (head2 < tail2) {
+        const cx = queue[head2++]
+        const cy = queue[head2++]
+        area++
+        const n = [
+          [cx - 1, cy], [cx + 1, cy], [cx, cy - 1], [cx, cy + 1],
+        ]
+        for (const [nx, ny] of n) {
+          if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue
+          const nidx = ny * w + nx
+          if (comp[nidx] !== -1 || data[nidx * 4 + 3] <= 8) continue
+          comp[nidx] = id
+          queue[tail2++] = nx
+          queue[tail2++] = ny
+        }
+      }
+      areas.push(area)
+    }
+  }
+  if (areas.length === 0) throw new Error('no opaque content found')
+  let largestId = 0
+  for (let id = 1; id < areas.length; id++) {
+    if (areas[id] > areas[largestId]) largestId = id
+  }
+  for (let idx = 0; idx < w * h; idx++) {
+    if (comp[idx] >= 0 && comp[idx] !== largestId) data[idx * 4 + 3] = 0
+  }
+
+  // Write the alpha edits back into the canvas before cropping.
+  ctx.putImageData(id, 0, 0)
+
   let minX = w
   let minY = h
   let maxX = -1
@@ -99,11 +172,7 @@ const cutout = await page.evaluate(async ({ sourceDataUrl, COLS, ROWS, CW, CH })
   const cut = document.createElement('canvas')
   cut.width = bw
   cut.height = bh
-  cut.getContext('2d').putImageData(new ImageData(
-    new Uint8ClampedArray(data.buffer, (minY * w + minX) * 4, bw * bh * 4),
-    bw,
-    bh,
-  ), 0, 0)
+  cut.getContext('2d').putImageData(ctx.getImageData(minX, minY, bw, bh), 0, 0)
   return { dataUrl: cut.toDataURL('image/png'), width: bw, height: bh }
 }, { sourceDataUrl, COLS, ROWS, CW, CH })
 
