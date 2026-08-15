@@ -74,6 +74,10 @@
   color: var(--dsw-alias-label-primary);
   font-size: 14px;
   line-height: 22px;
+  /* Frosted glass: blur the page behind the panel so content stays readable
+     (same treatment as the balance plugin panels). */
+  -webkit-backdrop-filter: blur(22px) saturate(1.2);
+  backdrop-filter: blur(22px) saturate(1.2);
 }
 
 .header {

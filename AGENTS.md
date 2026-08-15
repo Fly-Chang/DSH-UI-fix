@@ -31,3 +31,15 @@
 - 需要装饰性符号时，改用非 emoji 的普通字符（如 `×`、`-`、`*`），或直接去掉。
 - 新提交前先检查：`git diff` 或全局搜索 Unicode Emoji 范围字符。
 
+## 浮层与面板背景的毛玻璃约定（2026-08-15 起，用户偏好）
+
+- 所有**浮层、面板、插件视图**的背景必须使用毛玻璃质感：
+  `backdrop-filter: blur(22px) saturate(1.2)`（含 `-webkit-` 前缀）+
+  主题表面令牌（`--dsw-alias-bg-base` / `--dsw-alias-bg-layer-1` / `--dsw-alias-bg-layer-2`），
+  保证底层主界面内容不会透过面板干扰可读性。
+- 面板/视图内如有 `position: fixed` 的弹窗或遮罩，必须 **portal 到 `document.body`**，
+  避免祖先的 backdrop-filter 成为 containing block 导致弹窗错位。
+- **新增任何界面时默认套用以上两条**，无需等待用户提醒。已套用的参考实现：
+  dsh-balance-plugin（bmon-overlay-card）、dsh-ssh（panel）、dsh-task-board（board view）、
+  dsh-remote-web-ui（panel）、dsh-aionui-panel（两侧把手命中区翻转进面板，不遮挡滚动条）。
+

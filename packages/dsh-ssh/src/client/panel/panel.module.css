@@ -106,6 +106,10 @@ html[data-dsh-ssh-active]:not([data-dsh-taskboard-active]) [data-pane='conversat
   background: var(--dsw-alias-bg-base);
   color: var(--dsw-alias-label-primary);
   font-family: var(--dsw-font-family);
+  /* Frosted glass: blur the page behind the panel so content stays readable
+     (same treatment as the balance plugin panels). */
+  -webkit-backdrop-filter: blur(22px) saturate(1.2);
+  backdrop-filter: blur(22px) saturate(1.2);
 }
 
 .panelHeader {

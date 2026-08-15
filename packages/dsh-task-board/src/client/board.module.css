@@ -17,6 +17,12 @@
   inset: 0;
   display: none;
   z-index: 60;
+  /* Frosted glass backdrop: blur the page behind the board so cards and
+     tables stay readable (same treatment as the ssh / remote / balance
+     panels). */
+  background: var(--dsw-alias-bg-base);
+  -webkit-backdrop-filter: blur(22px) saturate(1.2);
+  backdrop-filter: blur(22px) saturate(1.2);
 }
 
 /* The center column is single-occupant; the :not() guards keep the two

@@ -978,16 +978,6 @@ body[data-dsh-phrolova][data-ds-dark-theme] [data-gitgraph-chip][aria-expanded='
   background-color: rgba(224, 72, 90, 0.16);
 }
 
-/* --- 插件面板背板：与设置页同款玻璃 ---------------------------------------------
-   任务看板与 SSH 面板在中心列全幅展开；此前背景画直接穿透会干扰表格与表单文字。
-   这里让两块面板使用与官方设置页完全相同的表面令牌（--dsw-alias-bg-base），
-   观感与设置页一致：半透明玻璃透出主题色调，文字落在标准表面上。 */
-
-body[data-dsh-phrolova] [data-dsh-taskboard-view],
-body[data-dsh-phrolova] [data-dsh-ssh-view] {
-  background: var(--dsw-alias-bg-base);
-}
-
 /* --- Motion: reduced ----------------------------------------------------------
    The petal field and the rose pulse are decorative only; both are fully
    neutralized for users who prefer reduced motion, together with every
