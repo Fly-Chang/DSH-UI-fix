@@ -1,0 +1,28 @@
+{
+  "id": "phrolova",
+  "name": "弗洛洛",
+  "nameEn": "Phrolova",
+  "author": "dsh-web-ui",
+  "tagline": "紫海暮色 · 夜玫微光 · 亮暗双面角色主题",
+  "description": "弗洛洛 — 一面是暮色下的紫色花海（粉紫丁香色调，花瓣飘落），一面是黑紫暗夜里一朵发光的红玫瑰（红黑哥特氛围）。亮暗主题各自配一幅插画背景与一枚玫瑰 favicon，面板半透明磨砂，让画面透出来，玫瑰红是整套皮肤的点睛色。",
+  "tags": [
+    "phrolova",
+    "anime",
+    "wuthering-waves",
+    "purple",
+    "rose",
+    "dual-theme"
+  ],
+  "accent": "#c03048",
+  "bodyAttr": "data-dsh-phrolova",
+  "package": "@linxin666/dsh-client-ui-skin-phrolova",
+  "wiring": {
+    "id": "ui-skin-phrolova",
+    "bundleWired": false
+  },
+  "preview": {
+    "light": "packages/skins/phrolova/preview/light.png",
+    "dark": "packages/skins/phrolova/preview/dark.png"
+  },
+  "order": 10
+}

@@ -1,0 +1,17 @@
+{
+  "id": "phrolova-dark",
+  "displayName": "弗洛洛",
+  "description": "暗态弗洛洛占位图集：黑红哥特裙与彼岸花配色。",
+  "spritesheetPath": "spritesheet.webp",
+  "frames": [
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4
+  ]
+}

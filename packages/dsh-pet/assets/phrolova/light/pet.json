@@ -1,0 +1,17 @@
+{
+  "id": "phrolova-light",
+  "displayName": "弗洛洛",
+  "description": "亮态弗洛洛占位图集：白裙与紫色花海配色。",
+  "spritesheetPath": "spritesheet.webp",
+  "frames": [
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4
+  ]
+}
