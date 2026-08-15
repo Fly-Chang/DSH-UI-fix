@@ -104,7 +104,9 @@ html[data-dsh-taskboard-active]:not([data-dsh-ssh-active]) [data-pane='conversat
   min-height: 0;
   padding: 14px 16px 16px;
   gap: 12px;
-  background: var(--dsw-alias-bg-base);
+  /* The frosted glass lives on the [data-dsh-taskboard-view] container;
+     keep this frame transparent so the backdrop blur stays visible. */
+  background: transparent;
   color: var(--dsw-alias-label-primary);
   font-family: var(--dsw-font-family);
 }
