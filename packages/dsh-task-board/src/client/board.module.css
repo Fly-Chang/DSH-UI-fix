@@ -190,6 +190,14 @@ html[data-dsh-taskboard-active]:not([data-dsh-ssh-active]) [data-pane='conversat
   gap: 12px;
   flex: 1;
   min-height: 0;
+  /* Wrap the five columns in one board frame: a rounded, bordered container
+     that closes the bottom edge so the column dividers do not run straight
+     down to the bare window edge. */
+  padding: 12px;
+  background: var(--dsw-alias-bg-layer-1);
+  border: 1px solid var(--dsw-alias-border-l1);
+  border-radius: 14px;
+  overflow: hidden;
 }
 
 .column {
