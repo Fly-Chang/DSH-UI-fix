@@ -27,11 +27,6 @@
     - id: ui-git-graph
       name: '@linxin666/dsh-client-ui-git-graph'
 
-# from ../dsh-pet
-- insert:
-    - id: pet
-      name: '@linxin666/dsh-pet'
-
 # from ../dsh-remote-web-ui
 - insert:
     - id: remote-web-ui

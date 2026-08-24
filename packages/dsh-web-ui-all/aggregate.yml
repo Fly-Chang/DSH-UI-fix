@@ -11,7 +11,6 @@ patchFrom:
   - ../dsh-aionui-panel
   - ../dsh-task-board
   - ../dsh-git-graph
-  - ../dsh-pet
   - ../dsh-remote-web-ui
   - ../dsh-live-stats
   - ../dsh-ssh
@@ -22,7 +21,6 @@ deps:
   - ../dsh-aionui-panel
   - ../dsh-task-board
   - ../dsh-git-graph
-  - ../dsh-pet
   - ../dsh-remote-web-ui
   - ../dsh-live-stats
   - ../dsh-ssh
