@@ -96,6 +96,11 @@ export class PanelApi {
   gitCommit(root: string, message: string): Promise<PanelEnvelope<{ commit: string }>> {
     return post('/aionui-panel/git-commit', { root, message })
   }
+
+  /** Apply a unified diff (patch text) to the worktree. */
+  gitApplyPatch(root: string, content: string): Promise<PanelEnvelope<{ ok: true }>> {
+    return post('/aionui-panel/git-apply-patch', { root, content })
+  }
 }
 
 /** One SSE change event pushed by the host. */

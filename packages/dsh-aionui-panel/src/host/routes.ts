@@ -318,6 +318,16 @@ export function registerPanelRoutes(ctx: Context, fs: FsService, git: GitService
         json(res, 'ok' in result ? OK({ commit: result.commit }) : FAIL(result))
         return
       }
+      case '/aionui-panel/git-apply-patch': {
+        const content = strOrEmpty(payload, 'content')
+        if (content === null) {
+          json(res, FAIL(BAD_REQUEST))
+          return
+        }
+        const result = await git.applyPatch(root, content)
+        json(res, 'ok' in result ? OK(result) : FAIL(result))
+        return
+      }
       default:
         res.writeHead(404)
         res.end()

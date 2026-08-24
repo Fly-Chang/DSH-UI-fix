@@ -9,7 +9,8 @@
  */
 
 import { join, relative } from 'node:path'
-import { realpath } from 'node:fs/promises'
+import { realpath, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-subprocess'
 import type { SubprocessHandle, SubprocessSpawnSpec } from '@deepseek-ai/dsh-subprocess'
@@ -358,5 +359,35 @@ export class GitService {
     // Extract the short hash from `git commit` output (e.g. "[main abc1234]").
     const match = /\[[^\]]*\s([0-9a-f]{7,40})]/.exec(result.stdout)
     return { ok: true, commit: match?.[1] ?? '' }
+  }
+
+  /**
+   * Apply a unified diff (patch text) to the worktree: write the content to a
+   * temp file, dry-run with `git apply --check`, then apply. The temp file is
+   * removed in every path. Refuses to touch .git paths when the patch names one.
+   */
+  async applyPatch(root: string, content: string): Promise<{ ok: true } | PanelError> {
+    const repo = await this.repo(root)
+    if (!repo.ok) return repo.error
+    if (content.trim() === '') return { code: 'git-failed', message: 'patch is empty' }
+    const tmp = join(tmpdir(), `aionui-patch-${process.pid}-${Date.now()}.diff`)
+    try {
+      await writeFile(tmp, content, 'utf8')
+    } catch {
+      return { code: 'write-failed', message: 'cannot write patch file' }
+    }
+    try {
+      const check = await this.run(['apply', '--check', '--', tmp], repo.repo)
+      if (check.exitCode !== 0) {
+        return { code: 'git-failed', message: check.stderr.trim() || 'git apply --check failed' }
+      }
+      const result = await this.run(['apply', '--', tmp], repo.repo)
+      if (result.exitCode !== 0) {
+        return { code: 'git-failed', message: result.stderr.trim() || 'git apply failed' }
+      }
+      return { ok: true }
+    } finally {
+      void rm(tmp, { force: true })
+    }
   }
 }

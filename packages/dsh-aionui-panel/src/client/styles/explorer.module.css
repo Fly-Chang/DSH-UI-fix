@@ -174,6 +174,7 @@
   transition: background-color 0.12s ease;
   white-space: nowrap;
   min-width: 0;
+  position: relative;
 }
 
 .treeRow:hover {
@@ -196,6 +197,23 @@
 .treeRowSelected,
 .treeRowSelected:hover {
   background-color: var(--aion-fill-3);
+}
+
+/* Session-touched rows: brand-colored name plus a leading dot. */
+.treeRowTouched .treeName {
+  color: var(--aion-brand, var(--aion-primary));
+}
+
+.treeRowTouched::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--aion-brand, var(--aion-primary));
 }
 
 .treeArrow {

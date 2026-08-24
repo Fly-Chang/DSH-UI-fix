@@ -35,6 +35,7 @@ export function PreviewTabs({
   onContextMenu,
   onNewUrlTab,
   onClosePanel,
+  onReorder,
 }: {
   tabs: PreviewTabState[]
   activeTabId: string | null
@@ -43,9 +44,12 @@ export function PreviewTabs({
   onContextMenu: (event: React.MouseEvent, tab: PreviewTabState) => void
   onNewUrlTab: () => void
   onClosePanel: () => void
+  onReorder?: (fromId: string, toId: string) => void
 }): JSX.Element {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [fade, setFade] = useState<TabFadeState>({ left: false, right: false })
+  const [dragId, setDragId] = useState<string | null>(null)
+  const [dropId, setDropId] = useState<string | null>(null)
 
   // Overflow fades: ResizeObserver + scroll listener, setState only on change.
   useEffect(() => {
@@ -77,12 +81,13 @@ export function PreviewTabs({
         {tabs.map((tab) => (
           <div
             key={tab.id}
-            className={`${previewCss.tab}${tab.id === activeTabId ? ` ${previewCss.tabActive}` : ` ${previewCss.tabInactive}`}`}
+            className={`${previewCss.tab}${tab.id === activeTabId ? ` ${previewCss.tabActive}` : ` ${previewCss.tabInactive}`}${dragId === tab.id ? ` ${previewCss.tabDragging}` : ''}${dropId === tab.id ? ` ${previewCss.tabDropTarget}` : ''}`}
             style={{ maxWidth: MAX_TAB_WIDTH_PX }}
             role="button"
             tabIndex={0}
             title={tab.path}
             aria-label={tab.title}
+            draggable={onReorder !== undefined}
             onClick={() => onSwitch(tab.id)}
             onKeyDown={activateOnKey(() => { onSwitch(tab.id) })}
             onContextMenu={(event) => onContextMenu(event, tab)}
@@ -91,6 +96,34 @@ export function PreviewTabs({
               event.preventDefault()
               event.stopPropagation()
               onClose(tab.id)
+            }}
+            onDragStart={(event) => {
+              if (onReorder === undefined) return
+              event.dataTransfer.effectAllowed = 'move'
+              // A text payload keeps the drag alive cross-tab (files default to copy).
+              event.dataTransfer.setData('text/plain', tab.id)
+              setDragId(tab.id)
+            }}
+            onDragOver={(event) => {
+              if (onReorder === undefined || dragId === null || dragId === tab.id) return
+              event.preventDefault()
+              event.dataTransfer.dropEffect = 'move'
+              setDropId(tab.id)
+            }}
+            onDragLeave={() => {
+              setDropId((prev) => (prev === tab.id ? null : prev))
+            }}
+            onDrop={(event) => {
+              if (onReorder === undefined || dragId === null) return
+              event.preventDefault()
+              event.stopPropagation()
+              if (dragId !== tab.id) onReorder(dragId, tab.id)
+              setDragId(null)
+              setDropId(null)
+            }}
+            onDragEnd={() => {
+              setDragId(null)
+              setDropId(null)
             }}
           >
             <span className={previewCss.tabTitle} title={tab.path}>{tab.title}</span>

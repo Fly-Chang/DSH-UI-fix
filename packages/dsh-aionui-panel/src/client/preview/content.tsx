@@ -25,12 +25,14 @@ export function TabContent({
   split,
   onContentChange,
   onSave,
+  onApplyPatch,
 }: {
   tab: PreviewTabState
   viewMode: 'source' | 'preview'
   split: boolean
   onContentChange: (content: string) => void
   onSave: () => void
+  onApplyPatch?: (content: string) => void
 }): JSX.Element {
   if (tab.error !== null) {
     return <div className={previewCss.placeholder}>
@@ -78,7 +80,7 @@ export function TabContent({
         <CodeViewer content={tab.content} language={tab.title.split('.').pop() ?? ''} />
       )}
       {tab.contentType === 'csv' && tab.content !== null && <CsvViewer content={tab.content} />}
-      {tab.contentType === 'diff' && tab.content !== null && <DiffViewer content={tab.content} />}
+      {tab.contentType === 'diff' && tab.content !== null && <DiffViewer content={tab.content} onApply={onApplyPatch} />}
       {tab.contentType === 'image' && tab.content !== null && (
         <ImageViewer src={tab.content} meta={`${tab.image?.width ?? ''}${tab.image ? ' x ' : ''}${tab.image?.height ?? ''}`} />
       )}
@@ -298,28 +300,56 @@ export function parseCsv(text: string): string[][] {
   return rows
 }
 
-/** Unified diff viewer. */
-function DiffViewer({ content }: { content: string }): JSX.Element {
+/** Unified diff viewer with an apply-patch action for standalone patch files. */
+function DiffViewer({ content, onApply }: { content: string; onApply?: (content: string) => void }): JSX.Element {
+  const [applying, setApplying] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const lines = content.split('\n')
+
+  const applyPatch = (): void => {
+    if (applying || onApply === undefined) return
+    setApplying(true)
+    setError(null)
+    // Fire-and-forget: the parent shows the result (toast on success) and
+    // drives refreshes; the button re-enables on the next render.
+    onApply(content)
+    setTimeout(() => setApplying(false), 600)
+  }
+
   return (
-    <div className={previewCss.diffViewer}>
-      {lines.map((line, index) => {
-        let className = previewCss.diffLineMeta
-        if (line.startsWith('+++') || line.startsWith('---') || line.startsWith('diff ') || line.startsWith('index ')) {
-          className = previewCss.diffLineMeta
-        } else if (line.startsWith('@@')) {
-          className = previewCss.diffLineHunk
-        } else if (line.startsWith('+')) {
-          className = previewCss.diffLineAdd
-        } else if (line.startsWith('-')) {
-          className = previewCss.diffLineDel
-        }
-        return (
-          <div key={index} className={className}>
-            {line === '' ? ' ' : line}
-          </div>
-        )
-      })}
+    <div className={previewCss.content}>
+      <div className={previewCss.diffViewer}>
+        {lines.map((line, index) => {
+          let className = previewCss.diffLineMeta
+          if (line.startsWith('+++') || line.startsWith('---') || line.startsWith('diff ') || line.startsWith('index ')) {
+            className = previewCss.diffLineMeta
+          } else if (line.startsWith('@@')) {
+            className = previewCss.diffLineHunk
+          } else if (line.startsWith('+')) {
+            className = previewCss.diffLineAdd
+          } else if (line.startsWith('-')) {
+            className = previewCss.diffLineDel
+          }
+          return (
+            <div key={index} className={className}>
+              {line === '' ? ' ' : line}
+            </div>
+          )
+        })}
+      </div>
+      {onApply !== undefined && (
+        <div className={previewCss.diffApplyRow}>
+          <button
+            type="button"
+            className={previewCss.diffApplyBtn}
+            disabled={applying}
+            onClick={applyPatch}
+          >
+            {applying ? t('preview.patchApplying') : t('preview.applyPatch')}
+          </button>
+          {error !== null && <span className={previewCss.diffApplyError}>{error}</span>}
+        </div>
+      )}
     </div>
   )
 }

@@ -13,7 +13,7 @@ import { isEditableType } from '../fileType.ts'
 import { t, format } from '../locales.ts'
 import { useStore } from '../hooks/useStore.ts'
 import type { PanelStores, PreviewTabState } from '../store.ts'
-import { ConfirmDialog, ContextMenu, type MenuState } from '../components/overlay.tsx'
+import { ConfirmDialog, ContextMenu, toast, type MenuState } from '../components/overlay.tsx'
 import { PreviewTabs } from './PreviewTabs.tsx'
 import { PreviewToolbar, downloadTab } from './PreviewToolbar.tsx'
 import { TabContent } from './content.tsx'
@@ -115,6 +115,18 @@ export function PreviewPanel({ stores }: { stores: PanelStores }): JSX.Element {
         onContextMenu={closeMenuFor}
         onNewUrlTab={newUrlTab}
         onClosePanel={() => preview.setOpen(false)}
+        onReorder={(fromId, toId) => {
+          // Move the dragged tab before the drop target (keep the rest in order).
+          preview.update((prev) => {
+            const from = prev.tabs.findIndex((tab) => tab.id === fromId)
+            const to = prev.tabs.findIndex((tab) => tab.id === toId)
+            if (from < 0 || to < 0 || from === to) return prev
+            const tabs = [...prev.tabs]
+            const [moved] = tabs.splice(from, 1)
+            tabs.splice(to, 0, moved)
+            return { ...prev, tabs }
+          })
+        }}
       />
       {activeTab !== null && (
         <>
@@ -140,6 +152,14 @@ export function PreviewPanel({ stores }: { stores: PanelStores }): JSX.Element {
             split={split}
             onContentChange={(content) => preview.updateContent(activeTab.id, content)}
             onSave={() => void preview.saveTab(activeTab.id)}
+            onApplyPatch={(content) => {
+              void preview.applyPatch(content).then((result) => {
+                if (result.ok) {
+                  toast(t('preview.patchApplied'))
+                  void preview.reloadTab(activeTab.id)
+                }
+              })
+            }}
           />
         </>
       )}

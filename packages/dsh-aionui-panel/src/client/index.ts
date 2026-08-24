@@ -97,6 +97,8 @@ export function apply(ctx: ClientContext): void {
       stores.explorer.setRoot(root)
       stores.scm.setRoot(root)
       stores.preview.setRoot(root)
+      // A new project resets the touch highlight (session scope = one root).
+      stores.explorer.resetTouched()
 
       if (root === '') return
       disposeEvents = subscribePanelEvents(root, (event) => {
@@ -109,6 +111,14 @@ export function apply(ctx: ClientContext): void {
           stores.scm.update((prev) => (prev.root !== root ? prev : { ...prev, status: event.status, loading: false }))
           // The index/worktree moved: every open diff tab is stale by now.
           void stores.preview.handleGitChange(root)
+          // Unstaged/untracked rows are the session's changed files: highlight
+          // them in the explorer tree (staged rows were already touched).
+          if (event.status !== null) {
+            stores.explorer.setTouched([
+              ...event.status.unstaged.map((row) => row.path),
+              ...event.status.untracked.map((row) => row.path),
+            ])
+          }
         }
         if (event.kind === 'gitUnavailable') {
           // The host could not run git at all: land the friendly unavailable
@@ -134,6 +144,17 @@ export function apply(ctx: ClientContext): void {
       }
     }
     disposers.push(stores.preview.subscribe(mirrorPreviewOpen))
+
+    // Files opened in preview count as touched (highlighted in the tree).
+    disposers.push(stores.preview.subscribe(() => {
+      const state = stores.preview.getSnapshot()
+      const root = state.root
+      if (root === '' || root !== currentRoot) return
+      for (const tab of state.tabs) {
+        if (tab.path.startsWith('url:') || tab.path.startsWith('scm-diff:')) continue
+        stores.explorer.markTouched(tab.path)
+      }
+    }))
 
     // Language mirroring (the shell owns <html lang>; the dictionary follows).
     let langObserver: MutationObserver | undefined

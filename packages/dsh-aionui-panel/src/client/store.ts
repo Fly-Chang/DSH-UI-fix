@@ -204,6 +204,12 @@ export interface ExplorerState {
   }
   /** Bumped on every fs change event (drives refetch + re-render). */
   version: number
+  /**
+   * Files touched during this session (opened in preview or changed on disk,
+   * git events included). Not persisted; cleared between sessions. Rows in
+   * this set render with a highlight so the current battlefront is visible.
+   */
+  sessionTouched: string[]
 }
 
 /** The explorer store with its async actions. */
@@ -219,6 +225,12 @@ export interface ExplorerStore extends StateHandle<ExplorerState> {
   handleFsChange: () => void
   /** Reveal a workspace path in the OS file manager. */
   openInSystem: (rel: string) => Promise<{ ok: boolean }>
+  /** Mark a workspace path as touched this session (highlight in the tree). */
+  markTouched: (rel: string) => void
+  /** Replace the whole touched set (git-change driven). */
+  setTouched: (rels: string[]) => void
+  /** Clear the touched set (new session). */
+  resetTouched: () => void
 }
 
 /** Read the persisted explorer UI state for a root (range-guarded). */
@@ -244,6 +256,7 @@ export function createExplorerStore(api: PanelApi): ExplorerStore {
     activeTab: 'files',
     search: { ...EMPTY_SEARCH },
     version: 0,
+    sessionTouched: [],
   })
 
   let persistTimer: ReturnType<typeof setTimeout> | undefined
@@ -436,6 +449,24 @@ export function createExplorerStore(api: PanelApi): ExplorerStore {
           })
         })
       }
+    },
+    markTouched(rel: string) {
+      if (rel === '') return
+      handle.update((prev) => (
+        prev.sessionTouched.includes(rel) ? prev : { ...prev, sessionTouched: [...prev.sessionTouched, rel] }
+      ))
+    },
+    setTouched(rels: string[]) {
+      handle.update((prev) => {
+        const next = [...new Set(rels.filter((rel) => rel !== ''))]
+        if (next.length === prev.sessionTouched.length
+          && next.every((rel) => prev.sessionTouched.includes(rel))
+          && prev.sessionTouched.every((rel) => next.includes(rel))) return prev
+        return { ...prev, sessionTouched: next }
+      })
+    },
+    resetTouched() {
+      handle.update((prev) => (prev.sessionTouched.length === 0 ? prev : { ...prev, sessionTouched: [] }))
     },
   })
   ;(store as unknown as Record<symbol, unknown>)[FLUSH_PERSIST] = flushPersist
@@ -705,6 +736,8 @@ export interface PreviewStore extends StateHandle<PreviewState> {
   setOpen: (open: boolean) => void
   handleFsChange: () => void
   handleGitChange: (root: string) => void
+  /** Apply a unified diff (patch text) to the worktree. */
+  applyPatch: (content: string) => Promise<{ ok: boolean; error?: string }>
 }
 
 /** Persisted tab meta (content is re-fetched on restore). */
@@ -1102,6 +1135,15 @@ export function createPreviewStore(api: PanelApi): PreviewStore {
       // A git push means the index/worktree moved (stage/unstage/discard or
       // external git): every open diff tab is stale by definition.
       await refreshDiffs(root)
+    },
+    async applyPatch(content: string) {
+      const root = handle.getSnapshot().root
+      if (root === '') return { ok: false, error: 'no root' }
+      const result = await api.gitApplyPatch(root, content)
+      if (!result.ok) return { ok: false, error: result.error.message }
+      // The worktree moved: diff tabs are stale, the SCM status must refresh.
+      await refreshDiffs(root)
+      return { ok: true }
     },
   })
   ;(store as unknown as Record<symbol, unknown>)[FLUSH_PERSIST] = flushPersist

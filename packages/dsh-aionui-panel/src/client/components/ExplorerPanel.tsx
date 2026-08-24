@@ -336,6 +336,8 @@ function FileTree({ stores }: { stores: PanelStores }): JSX.Element {
           dirs={state.dirs}
           root={state.root}
           stores={stores}
+          touched={state.sessionTouched.includes(entry.path)}
+          touchedSet={state.sessionTouched}
           onContextMenu={(event) => openMenu(event, entry)}
         />
       ))}
@@ -354,6 +356,8 @@ function TreeRowBase({
   root,
   stores,
   onContextMenu,
+  touched,
+  touchedSet,
 }: {
   entry: FsEntry
   depth: number
@@ -363,6 +367,10 @@ function TreeRowBase({
   root: string
   stores: PanelStores
   onContextMenu?: (event: React.MouseEvent, entry: FsEntry) => void
+  /** True when this row's path was touched this session (highlight). */
+  touched: boolean
+  /** The full touched set so child rows can compute their own highlight. */
+  touchedSet: string[]
 }): JSX.Element {
   const explorer = stores.explorer
   const preview = stores.preview
@@ -398,7 +406,7 @@ function TreeRowBase({
   return (
     <>
       <div
-        className={`${explorerCss.treeRow}${isSelected ? ` ${explorerCss.treeRowSelected}` : ''}${draggingRow ? ` ${explorerCss.treeRowDragging}` : ''}`}
+        className={`${explorerCss.treeRow}${isSelected ? ` ${explorerCss.treeRowSelected}` : ''}${draggingRow ? ` ${explorerCss.treeRowDragging}` : ''}${touched ? ` ${explorerCss.treeRowTouched}` : ''}`}
         style={{ paddingLeft: 12 + 8 + depth * INDENT_STEP }}
         data-aionui-tree-path={entry.path}
         onClick={handleClick}
@@ -438,6 +446,9 @@ function TreeRowBase({
               dirs={dirs}
               root={root}
               stores={stores}
+              touched={touchedSet.includes(child.path)}
+              touchedSet={touchedSet}
+              onContextMenu={onContextMenu}
             />
           ))}
         </div>
