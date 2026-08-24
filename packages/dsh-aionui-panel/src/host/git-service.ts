@@ -338,4 +338,25 @@ export class GitService {
     const failed = paths.filter((p) => !inside.includes(join(repo.repo, p)))
     return { applied, failed }
   }
+
+  /**
+   * Commit the staged changes with the given message (git commit -m).
+   * Empty staged set is refused before any spawn. The message is passed as
+   * one argv entry, so shell injection through the message is impossible.
+   */
+  async commit(root: string, message: string): Promise<{ ok: true; commit: string } | PanelError> {
+    const trimmed = message.trim()
+    if (trimmed === '') return { code: 'git-failed', message: 'commit message is empty' }
+    const repo = await this.repo(root)
+    if (!repo.ok) return repo.error
+    const check = await this.run(['diff', '--cached', '--quiet'], repo.repo)
+    if (check.exitCode === 0) return { code: 'git-failed', message: 'nothing staged to commit' }
+    const result = await this.run(['commit', '-m', trimmed], repo.repo)
+    if (result.exitCode !== 0) {
+      return { code: 'git-failed', message: result.stderr.trim() || 'git commit failed' }
+    }
+    // Extract the short hash from `git commit` output (e.g. "[main abc1234]").
+    const match = /\[[^\]]*\s([0-9a-f]{7,40})]/.exec(result.stdout)
+    return { ok: true, commit: match?.[1] ?? '' }
+  }
 }

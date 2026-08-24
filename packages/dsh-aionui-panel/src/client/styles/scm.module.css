@@ -378,3 +378,64 @@
   color: var(--aion-text-tertiary);
   line-height: 1.6;
 }
+
+/* Commit row (visible once something is staged). */
+.commitRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border-bottom: 1px solid var(--aion-border);
+  flex-shrink: 0;
+}
+
+.commitInput {
+  flex: 1;
+  min-width: 0;
+  height: 26px;
+  padding: 0 8px;
+  font-size: 12px;
+  color: var(--aion-text-primary);
+  background: var(--aion-bg-2);
+  border: 1px solid var(--aion-border);
+  border-radius: 4px;
+  outline: none;
+}
+
+.commitInput:focus {
+  border-color: var(--aion-primary);
+}
+
+.commitInput::placeholder {
+  color: var(--aion-text-tertiary);
+}
+
+.commitBtn {
+  height: 26px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--aion-brand, var(--aion-primary));
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.commitBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.commitError {
+  padding: 6px 12px;
+  font-size: 11px;
+  color: var(--aion-danger, #e5484d);
+  background: var(--aion-bg-danger, rgba(229, 72, 77, 0.08));
+  border-bottom: 1px solid var(--aion-border);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 0;
+}

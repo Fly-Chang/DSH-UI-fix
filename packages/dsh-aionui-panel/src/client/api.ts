@@ -62,6 +62,11 @@ export class PanelApi {
     return post('/aionui-panel/delete', { root, path })
   }
 
+  /** Reveal a path in the OS file manager. */
+  openInSystem(root: string, path: string): Promise<PanelEnvelope<{ ok: true }>> {
+    return post('/aionui-panel/open-in-system', { root, path })
+  }
+
   /** The repo status view; null when the root is not a repository. */
   gitStatus(root: string): Promise<PanelEnvelope<GitStatusView | null>> {
     return post('/aionui-panel/git-status', { root })
@@ -85,6 +90,11 @@ export class PanelApi {
   /** Discard paths (worktree side; untracked paths are deleted). */
   gitDiscard(root: string, paths: string[]): Promise<PanelEnvelope<GitBatchResult>> {
     return post('/aionui-panel/git-discard', { root, paths })
+  }
+
+  /** Commit the staged changes with a message. */
+  gitCommit(root: string, message: string): Promise<PanelEnvelope<{ commit: string }>> {
+    return post('/aionui-panel/git-commit', { root, message })
   }
 }
 

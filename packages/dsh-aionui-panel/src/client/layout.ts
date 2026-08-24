@@ -115,6 +115,19 @@ export class PanelLayoutController {
     this.waitObserver = new MutationObserver(() => { tryAttach() })
     this.waitObserver.observe(document.body, { childList: true, subtree: true })
     tryAttach()
+
+    // Global shortcut: Ctrl/Cmd+B toggles the explorer column. Skipped while
+    // an input/textarea/contenteditable holds focus so the composer keeps its
+    // own key handling (and editors keep Ctrl+B bold).
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'b') return
+      const target = event.target as HTMLElement | null
+      if (target !== null && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return
+      event.preventDefault()
+      this.toggleExplorer()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    this.disposers.push(() => window.removeEventListener('keydown', onKeyDown))
   }
 
   /** Attach to the frame: columns, handles, observers, store subscription. */

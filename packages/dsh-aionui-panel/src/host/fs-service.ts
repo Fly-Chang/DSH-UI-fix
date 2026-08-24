@@ -11,6 +11,7 @@
 
 import { readdir, readFile, realpath, stat, writeFile, rm, mkdir } from 'node:fs/promises'
 import { watch as watchDir, type Dirent, type FSWatcher } from 'node:fs'
+import { spawn } from 'node:child_process'
 import { join, dirname } from 'node:path'
 import type { DirListing, FileRead, FsEntry, PanelError, SearchHit, SearchView } from '../core/types.ts'
 import { isPathInside, type GateVerdict, type WorkspaceGate } from './gate.ts'
@@ -365,6 +366,34 @@ export class FsService {
       return { ok: true }
     } catch {
       return { code: 'write-failed', message: `cannot delete ${rel}` }
+    }
+  }
+
+  /**
+   * Reveal a workspace path in the OS file manager (select the file / open
+   * the folder). Resolves against the gated root like every other operation;
+   * the platform command is spawned detached so the panel never waits on it.
+   * Best-effort: unsupported platforms answer ok without doing anything.
+   */
+  async openInSystem(root: string, rel: string): Promise<{ ok: true } | PanelError> {
+    const gated = await this.gate(root)
+    if (!gated.ok) return gated.error
+    if (rel === '') return { code: 'path-outside-root', message: 'refusing to open the root' }
+    const resolved = await resolveInsideRoot(gated.canonical, rel)
+    if (!resolved.ok) return resolved.error
+    try {
+      if (process.platform === 'win32') {
+        // explorer /select,<path> reveals the file; for a folder it selects it.
+        spawn('explorer', ['/select,', resolved.abs], { detached: true, stdio: 'ignore' })
+      } else if (process.platform === 'darwin') {
+        spawn('open', ['-R', resolved.abs], { detached: true, stdio: 'ignore' })
+      } else {
+        // Linux and friends: open the containing directory.
+        spawn('xdg-open', [dirname(resolved.abs)], { detached: true, stdio: 'ignore' })
+      }
+      return { ok: true }
+    } catch {
+      return { code: 'write-failed', message: `cannot open ${rel}` }
     }
   }
 

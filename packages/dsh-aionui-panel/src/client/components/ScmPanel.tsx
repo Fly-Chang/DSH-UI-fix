@@ -62,6 +62,9 @@ export function ScmPanel({ stores }: { stores: PanelStores }): JSX.Element {
   const preview = stores.preview
   const state = useStore(scm)
   const [discardTargets, setDiscardTargets] = useState<GitChangeRow[] | null>(null)
+  const [commitMessage, setCommitMessage] = useState('')
+  const [commitBusy, setCommitBusy] = useState(false)
+  const [commitError, setCommitError] = useState<string | null>(null)
 
   // Window focus refreshes (catches external editors writing the tree).
   useEffect(() => {
@@ -81,6 +84,17 @@ export function ScmPanel({ stores }: { stores: PanelStores }): JSX.Element {
     if (discardTargets === null) return
     void scm.discard(discardTargets.map((row) => row.path))
     setDiscardTargets(null)
+  }
+
+  const submitCommit = (): void => {
+    if (commitBusy || commitMessage.trim() === '') return
+    setCommitBusy(true)
+    setCommitError(null)
+    void scm.commit(commitMessage).then((result) => {
+      setCommitBusy(false)
+      if (result.ok) setCommitMessage('')
+      else setCommitError(result.error ?? null)
+    })
   }
 
   if (state.loading && status === null) {
@@ -166,6 +180,37 @@ export function ScmPanel({ stores }: { stores: PanelStores }): JSX.Element {
 
         {changesSectionOpen && (
           <div className={scmCss.sectionBody}>
+            {/* Commit row: visible once something is staged. */}
+            {staged.length > 0 && (
+              <div className={scmCss.commitRow}>
+                <input
+                  className={scmCss.commitInput}
+                  value={commitMessage}
+                  placeholder={t('scm.commitPlaceholder')}
+                  aria-label={t('scm.commitPlaceholder')}
+                  onChange={(event) => setCommitMessage(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' && !event.shiftKey) {
+                      event.preventDefault()
+                      submitCommit()
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  className={scmCss.commitBtn}
+                  disabled={commitBusy || commitMessage.trim() === ''}
+                  onClick={submitCommit}
+                >
+                  {commitBusy ? t('scm.committing') : t('scm.commit')}
+                </button>
+              </div>
+            )}
+            {commitError !== null && (
+              <div className={scmCss.commitError} title={commitError}>
+                {commitError === 'empty' ? t('scm.commitEmpty') : commitError}
+              </div>
+            )}
             {!hasChanges && <div className={scmCss.empty}>{t('scm.empty')}</div>}
             {hasChanges && (
               <Group

@@ -217,6 +217,8 @@ export interface ExplorerStore extends StateHandle<ExplorerState> {
   cancelSearch: () => void
   /** Refetch every expanded dir + active search after a host change event. */
   handleFsChange: () => void
+  /** Reveal a workspace path in the OS file manager. */
+  openInSystem: (rel: string) => Promise<{ ok: boolean }>
 }
 
 /** Read the persisted explorer UI state for a root (range-guarded). */
@@ -347,6 +349,12 @@ export function createExplorerStore(api: PanelApi): ExplorerStore {
       const state = handle.getSnapshot()
       schedulePersist(state.root, state.expanded, rel)
     },
+    async openInSystem(rel: string) {
+      const root = handle.getSnapshot().root
+      if (root === '' || rel === '') return { ok: false }
+      const result = await api.openInSystem(root, rel)
+      return { ok: result.ok }
+    },
     reveal(rel: string) {
       const state = handle.getSnapshot()
       const chain = ancestors(rel)
@@ -466,6 +474,7 @@ export interface ScmStore extends StateHandle<ScmState> {
   unstage: (paths: string[]) => Promise<void>
   discard: (paths: string[]) => Promise<void>
   discardAll: () => Promise<void>
+  commit: (message: string) => Promise<{ ok: boolean; error?: string }>
   setViewMode: (mode: 'list' | 'tree') => void
   setSectionCollapsed: (id: string, collapsed: boolean) => void
   setTreeExpanded: (keys: string[]) => void
@@ -612,6 +621,14 @@ export function createScmStore(api: PanelApi): ScmStore {
         ...(state.status?.untracked ?? []),
       ].map((row) => row.path)
       await this.discard(paths)
+    },
+    async commit(message: string) {
+      const root = handle.getSnapshot().root
+      if (root === '' || message.trim() === '') return { ok: false, error: 'empty' }
+      const result = await api.gitCommit(root, message)
+      if (!result.ok) return { ok: false, error: result.error.message }
+      await load(root)
+      return { ok: true }
     },
     setViewMode(mode: 'list' | 'tree') {
       handle.update((prev) => (prev.viewMode === mode ? prev : { ...prev, viewMode: mode }))

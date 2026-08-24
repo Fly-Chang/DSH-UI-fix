@@ -250,6 +250,16 @@ export function registerPanelRoutes(ctx: Context, fs: FsService, git: GitService
         json(res, 'ok' in result ? OK(result) : FAIL(result))
         return
       }
+      case '/aionui-panel/open-in-system': {
+        const path = strField(payload, 'path')
+        if (path === null) {
+          json(res, FAIL(BAD_REQUEST))
+          return
+        }
+        const result = await fs.openInSystem(root, path)
+        json(res, 'ok' in result ? OK(result) : FAIL(result))
+        return
+      }
       case '/aionui-panel/git-status': {
         const result = await git.status(root)
         json(res, result === null ? OK(null) : 'root' in result ? OK(result) : FAIL(result))
@@ -296,6 +306,16 @@ export function registerPanelRoutes(ctx: Context, fs: FsService, git: GitService
         }
         const result = await git.discard(root, paths)
         json(res, 'applied' in result ? OK(result) : FAIL(result))
+        return
+      }
+      case '/aionui-panel/git-commit': {
+        const message = strOrEmpty(payload, 'message')
+        if (message === null) {
+          json(res, FAIL(BAD_REQUEST))
+          return
+        }
+        const result = await git.commit(root, message)
+        json(res, 'ok' in result ? OK({ commit: result.commit }) : FAIL(result))
         return
       }
       default:

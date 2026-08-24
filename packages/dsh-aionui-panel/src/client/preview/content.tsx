@@ -324,14 +324,38 @@ function DiffViewer({ content }: { content: string }): JSX.Element {
   )
 }
 
-/** Image viewer. */
+/** Image viewer (click to zoom fullscreen; Esc or click to close). */
 function ImageViewer({ src, meta }: { src: string; meta: string }): JSX.Element {
+  const [zoomed, setZoomed] = useState(false)
+
+  useEffect(() => {
+    if (!zoomed) return
+    const close = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') setZoomed(false)
+    }
+    window.addEventListener('keydown', close)
+    return () => window.removeEventListener('keydown', close)
+  }, [zoomed])
+
   return (
     <div className={previewCss.content}>
       <div className={previewCss.imageViewer}>
-        <img src={src} alt="" />
+        <img
+          src={src}
+          alt=""
+          onClick={() => setZoomed(true)}
+          style={{ cursor: 'zoom-in' }}
+        />
+        <span className={previewCss.imageZoomHint}>{t('preview.imageZoomHint')}</span>
       </div>
       {meta.trim() !== '' && <div className={previewCss.imageMeta}>{meta}</div>}
+      {zoomed && (
+        <div className="aionui-overlay" onClick={() => setZoomed(false)}>
+          <div className={previewCss.imageZoomed} onClick={(event) => event.stopPropagation()}>
+            <img src={src} alt="" />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

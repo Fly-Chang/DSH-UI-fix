@@ -22,6 +22,7 @@ import { FileTypeIcon } from './FileIcon.tsx'
 import { ChevronRightIcon, CloseIcon, ExpandRightIcon, SearchIcon } from './icons.tsx'
 import { ScmPanel } from './ScmPanel.tsx'
 import { activateOnKey } from './a11y.ts'
+import { ContextMenu, toast, type MenuState } from './overlay.tsx'
 import { FILE_DRAG_MIME } from '../drag/file-drag.ts'
 import explorerCss from '../styles/explorer.module.css'
 import '../styles/tokens.module.css'
@@ -191,6 +192,7 @@ function FileTree({ stores }: { stores: PanelStores }): JSX.Element {
   const preview = stores.preview
   const state = useStore(explorer)
   const root = state.root
+  const [menu, setMenu] = useState<MenuState | null>(null)
 
   if (root === '') return <div className={explorerCss.emptyState}>{t('explorer.tree.empty')}</div>
   const entries = state.dirs['']
@@ -199,8 +201,131 @@ function FileTree({ stores }: { stores: PanelStores }): JSX.Element {
   }
   if (entries.length === 0) return <div className={explorerCss.emptyState}>{t('explorer.tree.empty')}</div>
 
+  // The flattened visible row list (DFS, folders first, only expanded dirs
+  // contribute children). Drives arrow-key navigation: the current selection
+  // is located in this list, up/down move within it, and reveal() scrolls the
+  // target row into view after selection changes.
+  const visibleRows: FsEntry[] = []
+  const walk = (list: FsEntry[]): void => {
+    for (const item of list) {
+      visibleRows.push(item)
+      if (item.isDir && state.expanded.includes(item.path)) {
+        const children = state.dirs[item.path]
+        if (children !== undefined) walk(children)
+      }
+    }
+  }
+  walk(entries)
+
+  const onTreeKeyDown = (event: React.KeyboardEvent): void => {
+    if (visibleRows.length === 0) return
+    const currentIndex = state.selected === null ? -1 : visibleRows.findIndex((row) => row.path === state.selected)
+    const current = currentIndex >= 0 ? visibleRows[currentIndex] : null
+
+    // Select a row and scroll it into view without touching the expansion
+    // state (arrow-key move must not expand ancestor chains).
+    const moveTo = (path: string): void => {
+      explorer.select(path)
+      const el = document.querySelector<HTMLElement>(`[data-aionui-tree-path="${CSS.escape(path)}"]`)
+      el?.scrollIntoView({ block: 'nearest' })
+    }
+
+    switch (event.key) {
+      case 'ArrowDown': {
+        event.preventDefault()
+        const next = visibleRows[Math.min(currentIndex + 1, visibleRows.length - 1)]
+        moveTo(next.path)
+        return
+      }
+      case 'ArrowUp': {
+        event.preventDefault()
+        const prev = visibleRows[Math.max(currentIndex - 1, 0)]
+        moveTo(prev.path)
+        return
+      }
+      case 'ArrowRight': {
+        if (current === null) return
+        if (current.isDir && !state.expanded.includes(current.path)) {
+          event.preventDefault()
+          explorer.toggleDir(current.path)
+        } else if (current.isDir) {
+          // Already expanded: move into the first child.
+          event.preventDefault()
+          const children = state.dirs[current.path]
+          if (children !== undefined && children.length > 0) {
+            moveTo(children[0].path)
+          }
+        }
+        return
+      }
+      case 'ArrowLeft': {
+        if (current === null) return
+        if (current.isDir && state.expanded.includes(current.path)) {
+          event.preventDefault()
+          explorer.toggleDir(current.path)
+        } else {
+          // A file or collapsed dir: move to the parent (the previous row at a
+          // shallower depth — the row whose path prefixes the current one).
+          event.preventDefault()
+          const parent = visibleRows
+            .slice(0, currentIndex)
+            .reverse()
+            .find((row) => current.path.startsWith(row.path + '/'))
+          if (parent !== undefined) {
+            moveTo(parent.path)
+          }
+        }
+        return
+      }
+      case 'Enter': {
+        if (current === null) return
+        event.preventDefault()
+        if (current.isDir) {
+          explorer.toggleDir(current.path)
+        } else {
+          explorer.select(current.path)
+          preview.openFile(root, current.path)
+        }
+        return
+      }
+      default:
+        return
+    }
+  }
+
+  // One context menu at a time: copy path / reveal in OS file manager.
+  const openMenu = (event: React.MouseEvent, entry: FsEntry): void => {
+    event.preventDefault()
+    event.stopPropagation()
+    setMenu({
+      x: event.clientX,
+      y: event.clientY,
+      entries: [
+        {
+          key: 'copy-path',
+          label: t('explorer.menu.copyPath'),
+          onSelect: () => {
+            void navigator.clipboard.writeText(entry.path).then(() => {
+              toast(t('explorer.menu.copied'))
+            })
+          },
+        },
+        {
+          key: 'reveal-os',
+          label: t('explorer.menu.revealInOs'),
+          onSelect: () => {
+            void explorer.openInSystem(entry.path)
+          },
+        },
+      ],
+    })
+  }
+
   return (
-    <div className={`${explorerCss.scrollArea} ${explorerCss.tree}`}>
+    <div
+      className={`${explorerCss.scrollArea} ${explorerCss.tree}`}
+      onKeyDown={onTreeKeyDown}
+    >
       {entries.map((entry) => (
         <TreeRow
           key={entry.path}
@@ -211,8 +336,10 @@ function FileTree({ stores }: { stores: PanelStores }): JSX.Element {
           dirs={state.dirs}
           root={state.root}
           stores={stores}
+          onContextMenu={(event) => openMenu(event, entry)}
         />
       ))}
+      <ContextMenu state={menu} onClose={() => setMenu(null)} />
     </div>
   )
 }
@@ -226,6 +353,7 @@ function TreeRowBase({
   dirs,
   root,
   stores,
+  onContextMenu,
 }: {
   entry: FsEntry
   depth: number
@@ -234,6 +362,7 @@ function TreeRowBase({
   dirs: Record<string, FsEntry[]>
   root: string
   stores: PanelStores
+  onContextMenu?: (event: React.MouseEvent, entry: FsEntry) => void
 }): JSX.Element {
   const explorer = stores.explorer
   const preview = stores.preview
@@ -271,7 +400,9 @@ function TreeRowBase({
       <div
         className={`${explorerCss.treeRow}${isSelected ? ` ${explorerCss.treeRowSelected}` : ''}${draggingRow ? ` ${explorerCss.treeRowDragging}` : ''}`}
         style={{ paddingLeft: 12 + 8 + depth * INDENT_STEP }}
+        data-aionui-tree-path={entry.path}
         onClick={handleClick}
+        onContextMenu={onContextMenu !== undefined ? (event) => onContextMenu(event, entry) : undefined}
         onKeyDown={activateOnKey(handleClick)}
         onDoubleClick={(event) => {
           // Double-click on a file: same as click (open). Folders: keep toggle.
