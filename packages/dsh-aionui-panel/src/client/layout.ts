@@ -154,11 +154,32 @@ export class PanelLayoutController {
     frame.appendChild(this.previewHandle)
 
     // The floating expand button (fixed, right edge) — DOM-level, no React.
+    // Inline styles are set as a fallback so the reopen control stays visible
+    // even if the CSS module is not applied in a particular shell bundle.
     this.floatingButton = document.createElement('button')
     this.floatingButton.type = 'button'
     this.floatingButton.className = 'aionui-floating-expand'
     this.floatingButton.setAttribute('aria-label', 'Expand explorer')
     this.floatingButton.innerHTML = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3l5 5-5 5"/></svg>'
+    Object.assign(this.floatingButton.style, {
+      position: 'fixed',
+      top: '50%',
+      right: '0',
+      transform: 'translateY(-50%)',
+      width: '20px',
+      height: '64px',
+      display: 'none',
+      alignItems: 'center',
+      justifyContent: 'center',
+      border: 'none',
+      borderTopLeftRadius: '10px',
+      borderBottomLeftRadius: '10px',
+      background: 'var(--aion-bg-2, #f2f3f5)',
+      color: 'var(--aion-text-secondary, #454d5f)',
+      boxShadow: '0 8px 20px rgba(0, 0, 0, 0.12)',
+      cursor: 'pointer',
+      zIndex: '100',
+    })
     this.floatingButton.addEventListener('click', () => { this.toggleExplorer() })
     document.body.appendChild(this.floatingButton)
 
@@ -376,7 +397,7 @@ export class PanelLayoutController {
 
     // Floating expand button: visible only when the explorer is collapsed.
     if (this.floatingButton !== null) {
-      const show = state.root !== '' && state.explorerCollapsed
+        const show = state.root !== '' && (state.explorerCollapsed || explorer <= 0)
       this.floatingButton.style.display = show ? 'flex' : 'none'
     }
   }
