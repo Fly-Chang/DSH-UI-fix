@@ -84,6 +84,9 @@ export function TaskBoard({ controller }: { controller: BoardController }) {
                     key={task.id}
                     task={task}
                     onClick={() => { controller.openTask(task.id) }}
+                    onRun={() => { void controller.runTask(task.id) }}
+                    onRerun={() => { void controller.rerunTask(task.id) }}
+                    onDelete={() => { controller.deleteTask(task.id) }}
                   />
                 ))}
                 {tasks.length === 0 && <div className={css.columnEmpty}>{t('board.empty')}</div>}

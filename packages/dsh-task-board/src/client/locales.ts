@@ -8,6 +8,8 @@
 /** zh dictionary (key-set source of truth). */
 export const zh = {
   'entry.label': '任务看板',
+  'entry.taskDone': '任务完成：{name}',
+  'entry.taskFailed': '任务失败：{name}',
   'board.title': '任务看板',
   'board.close': '返回对话',
   'board.new': '新建任务',
@@ -73,6 +75,10 @@ export const zh = {
   'detail.schedule.notScheduled': '尚未排程',
   'detail.schedule.dueSoon': '即将运行',
   'card.scheduled': '定时',
+  'card.menu.run': '立即执行',
+  'card.menu.rerun': '重新执行',
+  'card.menu.edit': '编辑',
+  'card.menu.delete': '删除',
   // 插件设置卡片（settings.plugin.item 席位）。
   'settings.title': '任务看板',
   'settings.description': '控制看板在 agent 系统提示中的播报行为。',
@@ -100,6 +106,8 @@ export const zh = {
 /** en dictionary, complete against the zh key set. */
 export const en: Record<keyof typeof zh, string> = {
   'entry.label': 'Task Board',
+  'entry.taskDone': 'Task done: {name}',
+  'entry.taskFailed': 'Task failed: {name}',
   'board.title': 'Task Board',
   'board.close': 'Back to chat',
   'board.new': 'New Task',
@@ -165,6 +173,10 @@ export const en: Record<keyof typeof zh, string> = {
   'detail.schedule.notScheduled': 'Not scheduled yet',
   'detail.schedule.dueSoon': 'Due soon',
   'card.scheduled': 'scheduled',
+  'card.menu.run': 'Run now',
+  'card.menu.rerun': 'Rerun',
+  'card.menu.edit': 'Edit',
+  'card.menu.delete': 'Delete',
   // Plugin settings card (the `settings.plugin.item` seat).
   'settings.title': 'Task Board',
   'settings.description': 'How the board announces itself in each agent system prompt.',

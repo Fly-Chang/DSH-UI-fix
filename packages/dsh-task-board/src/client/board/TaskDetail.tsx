@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import type { BoardController } from '../../core/controller.ts'
 import { isValidCron } from '../../core/schedule.ts'
 import { MANUAL_STATUSES, type ExecutionRecord, type TaskRecord, type TaskStatus } from '../../core/tasks.ts'
+import { formatCountdown } from '../../core/tasks.ts'
 import { t, type TaskBoardKey } from '../locales.ts'
 import css from '../board.module.css'
 import { ConfirmDialog } from './ConfirmDialog.tsx'
@@ -74,6 +75,14 @@ function ScheduleSection({ controller, task }: { controller: BoardController; ta
   const [nextRunAt, setNextRunAt] = useState<number | undefined>(schedule?.nextRunAt)
   const [lastTriggeredAt, setLastTriggeredAt] = useState<number | undefined>(schedule?.lastTriggeredAt)
   const [error, setError] = useState<string | undefined>(undefined)
+  // Live countdown: ticks every second while a next run is armed so the label
+  // stays current without any interaction.
+  const [, forceTick] = useState(0)
+  useEffect(() => {
+    if (nextRunAt === undefined) return
+    const timer = setInterval(() => { forceTick(tick => tick + 1) }, 1000)
+    return () => clearInterval(timer)
+  }, [nextRunAt])
 
   // Keep the editor in sync when the task record changes underneath (the
   // schedule rolls forward as runs trigger).
@@ -120,7 +129,7 @@ function ScheduleSection({ controller, task }: { controller: BoardController; ta
     ? t('detail.schedule.notScheduled')
     : nextRunAt <= Date.now()
       ? t('detail.schedule.dueSoon')
-      : new Date(nextRunAt).toLocaleString()
+      : formatCountdown(nextRunAt - Date.now())
   const lastLabel = lastTriggeredAt === undefined ? '—' : new Date(lastTriggeredAt).toLocaleString()
 
   return (

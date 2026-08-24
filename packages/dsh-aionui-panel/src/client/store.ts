@@ -225,6 +225,8 @@ export interface ExplorerStore extends StateHandle<ExplorerState> {
   handleFsChange: () => void
   /** Reveal a workspace path in the OS file manager. */
   openInSystem: (rel: string) => Promise<{ ok: boolean }>
+  /** Force a fresh listing of one dir (drop cache + reload). */
+  refreshDir: (rel: string) => Promise<void>
   /** Mark a workspace path as touched this session (highlight in the tree). */
   markTouched: (rel: string) => void
   /** Replace the whole touched set (git-change driven). */
@@ -367,6 +369,28 @@ export function createExplorerStore(api: PanelApi): ExplorerStore {
       if (root === '' || rel === '') return { ok: false }
       const result = await api.openInSystem(root, rel)
       return { ok: result.ok }
+    },
+    async refreshDir(rel: string) {
+      const state = handle.getSnapshot()
+      const root = state.root
+      if (root === '') return
+      // Drop the cached listing (and every subtree for a dir refresh) so the
+      // reload cannot be short-circuited by ensureDir's cache hit.
+      handle.update((prev) => {
+        const dirs = { ...prev.dirs }
+        if (rel === '') {
+          for (const key of Object.keys(dirs)) delete dirs[key]
+        } else {
+          const prefix = `${rel}/`
+          for (const key of Object.keys(dirs)) {
+            if (key === rel || key.startsWith(prefix)) delete dirs[key]
+          }
+        }
+        return { ...prev, dirs }
+      })
+      // Reload the requested dir if it is the root or currently expanded.
+      const current = handle.getSnapshot()
+      if (rel === '' || current.expanded.includes(rel)) void ensureDir(root, rel)
     },
     reveal(rel: string) {
       const state = handle.getSnapshot()

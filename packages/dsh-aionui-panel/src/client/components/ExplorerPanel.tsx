@@ -317,6 +317,13 @@ function FileTree({ stores }: { stores: PanelStores }): JSX.Element {
             void explorer.openInSystem(entry.path)
           },
         },
+        {
+          key: 'refresh',
+          label: t('explorer.menu.refresh'),
+          onSelect: () => {
+            void explorer.refreshDir(entry.isDir ? entry.path : parentRel(entry.path))
+          },
+        },
       ],
     })
   }
@@ -436,6 +443,11 @@ function TreeRowBase({
       </div>
       {entry.isDir && isExpanded && children !== undefined && (
         <div>
+          {children.length === 0 && (
+            <div className={explorerCss.emptyDir} style={{ paddingLeft: 12 + 8 + (depth + 1) * INDENT_STEP }}>
+              {t('explorer.tree.emptyDir')}
+            </div>
+          )}
           {children.map((child) => (
             <TreeRow
               key={child.path}

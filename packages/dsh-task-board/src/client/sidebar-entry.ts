@@ -20,6 +20,19 @@ import css from './board.module.css'
 /** Stable data attribute identifying the injected entry row. */
 export const ENTRY_SELECTOR = '[data-dsh-taskboard-entry]'
 
+/** One transient completion toast (plain DOM, auto-dismiss). */
+function toast(message: string, success: boolean): void {
+  const el = document.createElement('div')
+  el.className = success ? css.entryToast : `${css.entryToast} ${css.entryToastError}`
+  el.textContent = message
+  document.body.appendChild(el)
+  setTimeout(() => {
+    el.style.opacity = '0'
+    el.style.transition = 'opacity 0.25s ease'
+  }, 2200)
+  setTimeout(() => el.remove(), 2600)
+}
+
 /** Inline icon (matches the shell's 16px nav-icon look). */
 const ICON = `<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2.5" width="12" height="11" rx="1.5"/><path d="M2 6.5h12M6.5 6.5v7"/></svg>`
 
@@ -51,7 +64,7 @@ function createEntry(controller: BoardController): HTMLButtonElement {
   entry.dataset.dshTaskboardEntry = ''
   entry.className = css.entry
   entry.setAttribute('aria-label', t('entry.label'))
-  entry.innerHTML = `<span class="${css.entryIcon}">${ICON}</span><span class="${css.entryLabel}">${t('entry.label')}</span>`
+  entry.innerHTML = `<span class="${css.entryIcon}">${ICON}</span><span class="${css.entryLabel}">${t('entry.label')}</span><span class="${css.entryBadge}" data-state="idle" hidden></span>`
   entry.addEventListener('click', () => { controller.toggleBoard() })
   return entry
 }
@@ -142,9 +155,40 @@ export function mountSidebarEntry(controller: BoardController): () => void {
   // Reflect the board's open state on the row (active highlight). Note: assigning
   // undefined to dataset.active materializes data-active="undefined" and keeps the
   // row permanently highlighted — delete the attribute instead.
+  const badge = entry.querySelector<HTMLElement>(`.${css.entryBadge}`)
+  // Running-task set from the previous snapshot: settle transitions become
+  // "task finished" toasts (the live execution settles on its turn boundary).
+  let previousRunning = new Set<string>()
   const syncActive = () => {
-    if (controller.getSnapshot().boardOpen) entry.dataset.active = 'true'
+    const snapshot = controller.getSnapshot()
+    if (snapshot.boardOpen) entry.dataset.active = 'true'
     else delete entry.dataset.active
+
+    if (badge === null) return
+    const running = snapshot.tasks.filter(task => task.status === 'running')
+    if (running.length > 0) {
+      badge.hidden = false
+      badge.dataset.state = 'running'
+      badge.textContent = String(running.length)
+    } else {
+      badge.hidden = true
+      delete badge.dataset.state
+      badge.textContent = ''
+    }
+
+    // Completion toast: a task that was running in the previous snapshot and
+    // is no longer running now (settled) announces its outcome once. The set
+    // comparison keeps repeat notifications off for already-settled tasks.
+    for (const task of snapshot.tasks) {
+      const wasRunning = previousRunning.has(task.id)
+      const nowRunning = task.status === 'running'
+      if (wasRunning && !nowRunning) {
+        const last = task.executions[task.executions.length - 1]
+        const ok = last?.result === 'succeeded'
+        toast(ok ? t('entry.taskDone', { name: task.title }) : t('entry.taskFailed', { name: task.title }), ok)
+      }
+    }
+    previousRunning = new Set(snapshot.tasks.filter(task => task.status === 'running').map(task => task.id))
   }
   const unsubscribe = controller.subscribe(syncActive)
   syncActive()

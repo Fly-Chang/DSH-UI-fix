@@ -83,6 +83,46 @@ html[data-dsh-taskboard-active]:not([data-dsh-ssh-active]) [data-pane='conversat
   text-overflow: ellipsis;
 }
 
+/* Running-count badge on the sidebar entry (danger dot + count). */
+.entryBadge {
+  margin-left: auto;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--dsw-alias-text-danger, #e5484d);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  flex: none;
+}
+
+/* Completion toast (fixed top-right, frosted). */
+.entryToast {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 500;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--dsw-alias-text-primary);
+  background: var(--dsw-alias-bg-layer-1);
+  -webkit-backdrop-filter: blur(22px) saturate(1.2);
+  backdrop-filter: blur(22px) saturate(1.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  border-left: 3px solid var(--dsw-alias-text-success, #30a46c);
+  user-select: none;
+}
+
+.entryToastError {
+  border-left-color: var(--dsw-alias-text-danger, #e5484d);
+}
+
 /* Collapsed rail: icon-only, centered, matching the shell's 56px rail. */
 [data-dsh-frame][data-sidebar-collapsed] .entry {
   justify-content: center;
@@ -861,4 +901,46 @@ html[data-dsh-taskboard-active]:not([data-dsh-ssh-active]) [data-pane='conversat
   .cardSpinner {
     animation: none;
   }
+}
+
+/* --- card quick-action context menu (fixed, frosted) ------------------------- */
+
+.cardMenu {
+  position: fixed;
+  z-index: 200;
+  min-width: 140px;
+  padding: 4px;
+  border-radius: 8px;
+  background: var(--dsw-alias-bg-layer-1);
+  -webkit-backdrop-filter: blur(22px) saturate(1.2);
+  backdrop-filter: blur(22px) saturate(1.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  user-select: none;
+}
+
+.cardMenuItem {
+  padding: 6px 12px;
+  font-size: 13px;
+  color: var(--dsw-alias-text-primary, var(--dsw-text-primary));
+  border-radius: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.cardMenuItem:hover {
+  background: var(--dsw-alias-fill-hover, var(--dsw-fill-hover));
+}
+
+.cardMenuItemDanger {
+  color: var(--dsw-alias-text-danger, #e5484d);
+}
+
+.cardMenuItemDanger:hover {
+  background: color-mix(in srgb, #e5484d 14%, transparent);
+}
+
+.cardMenuSep {
+  height: 1px;
+  margin: 4px 8px;
+  background: var(--dsw-alias-border, var(--dsw-border));
 }
