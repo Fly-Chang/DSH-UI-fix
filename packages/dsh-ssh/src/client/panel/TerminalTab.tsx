@@ -5,7 +5,7 @@
  * output stays visible and input is disabled. xterm's stylesheet is injected
  * once per page load (module-level guard).
  */
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import type { SshApi, TerminalConnection } from '../api.ts'
@@ -31,6 +31,13 @@ type TerminalStatus =
   | { kind: 'exited'; alias: string; detail?: string }
   | { kind: 'error'; detail: string }
 
+/** In-flight 2FA challenge prompts. */
+interface AuthPromptState {
+  name: string
+  instructions: string
+  prompts: Array<{ prompt: string; echo: boolean }>
+}
+
 /** Injected-once guard for the xterm stylesheet (one tag per page load). */
 let xtermCssInjected = false
 
@@ -49,6 +56,8 @@ export function TerminalTab({ api, presetAlias, requestId }: TerminalTabProps) {
   const [hosts, setHosts] = useState<SshHostSummary[]>([])
   const [alias, setAlias] = useState(presetAlias ?? '')
   const [status, setStatus] = useState<TerminalStatus>({ kind: 'idle' })
+  const [authPrompt, setAuthPrompt] = useState<AuthPromptState | undefined>(undefined)
+  const [authInputs, setAuthInputs] = useState<string[]>([])
   const containerRef = useRef<HTMLDivElement | null>(null)
   const termRef = useRef<Terminal | null>(null)
   const fitRef = useRef<FitAddon | null>(null)
@@ -76,12 +85,15 @@ export function TerminalTab({ api, presetAlias, requestId }: TerminalTabProps) {
   }, [presetAlias, requestId])
 
   const teardown = (): void => {
+    setAuthPrompt(undefined)
+    setAuthInputs([])
     const connection = connRef.current
     connRef.current = null
     if (connection !== null) {
       connection.onReady = undefined
       connection.onOutput = undefined
       connection.onExit = undefined
+      connection.onAuthPrompt = undefined
       connection.close()
     }
     termRef.current?.dispose()
@@ -129,17 +141,34 @@ export function TerminalTab({ api, presetAlias, requestId }: TerminalTabProps) {
     connRef.current = connection
     let settled = false
     const dataSub = term.onData(data => { connection.send(data) })
-    connection.onReady = () => { setStatus({ kind: 'connected', alias: target }) }
+    connection.onAuthPrompt = (name, instructions, prompts) => {
+      setAuthPrompt({ name, instructions, prompts })
+      setAuthInputs(prompts.map(() => ''))
+    }
+    connection.onReady = () => {
+      setAuthPrompt(undefined)
+      setAuthInputs([])
+      setStatus({ kind: 'connected', alias: target })
+    }
     connection.onOutput = data => { term.write(data) }
     connection.onExit = (code, error) => {
       if (settled) return
       settled = true
+      setAuthPrompt(undefined)
+      setAuthInputs([])
       dataSub.dispose()
       term.options.disableStdin = true
       connRef.current = null
       // Keep the last output visible; input is now disabled.
       setStatus({ kind: 'exited', alias: target, detail: error })
     }
+  }
+
+  const submitAuth = (e?: FormEvent): void => {
+    e?.preventDefault()
+    if (connRef.current === null || authPrompt === undefined) return
+    connRef.current.sendAuthResponse(authInputs)
+    setAuthPrompt(undefined)
   }
 
   const disconnect = (): void => {
@@ -169,6 +198,35 @@ export function TerminalTab({ api, presetAlias, requestId }: TerminalTabProps) {
         <div ref={containerRef} className={css.termContainer} />
         {status.kind === 'idle' && (
           <div className={css.termPlaceholder}>{hosts.length === 0 ? tt('hosts.empty') : tt('terminal.placeholder')}</div>
+        )}
+        {authPrompt !== undefined && (
+          <div className={css.modalBackdrop} style={{ position: 'absolute', zIndex: 10 }}>
+            <form className={css.modal} style={{ maxWidth: 420 }} onSubmit={submitAuth}>
+              <h3 className={css.modalTitle}>{authPrompt.name || tt('terminal.auth.title')}</h3>
+              <p className={css.hint}>{authPrompt.instructions || tt('terminal.auth.hint')}</p>
+              {authPrompt.prompts.map((p, idx) => (
+                <label key={idx} className={css.field}>
+                  <span className={css.fieldLabel}>{p.prompt.trim() || tt('terminal.auth.title')}</span>
+                  <input
+                    autoFocus={idx === 0}
+                    className={css.input}
+                    type={p.echo ? 'text' : 'password'}
+                    placeholder={tt('terminal.auth.placeholder')}
+                    value={authInputs[idx] ?? ''}
+                    onChange={event => {
+                      const next = [...authInputs]
+                      next[idx] = event.target.value
+                      setAuthInputs(next)
+                    }}
+                  />
+                </label>
+              ))}
+              <div className={css.modalFooter}>
+                <button type="button" className={css.ghostButton} onClick={disconnect}>{tt('terminal.auth.cancel')}</button>
+                <button type="submit" className={css.primaryButton}>{tt('terminal.auth.submit')}</button>
+              </div>
+            </form>
+          </div>
         )}
       </div>
     </div>

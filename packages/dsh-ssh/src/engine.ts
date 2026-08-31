@@ -88,6 +88,7 @@ function buildConnectConfig(entry: SshHostEntry, sock?: ConnectConfig['sock']): 
     readyTimeout: 15_000,
     keepaliveInterval: 15_000,
     keepaliveCountMax: 3,
+    tryKeyboard: true,
   }
   if (sock !== undefined) config.sock = sock
   if (entry.auth.kind === 'password') {
@@ -121,8 +122,17 @@ export function resolveAgentPath(agentPath?: string): string | undefined {
   return undefined
 }
 
+/** Keyboard-interactive handler callback for 2FA / dynamic prompt flow. */
+export type KeyboardInteractiveHandler = (
+  name: string,
+  instructions: string,
+  instructionsLang: string,
+  prompts: Array<{ prompt: string; echo: boolean }>,
+  finish: (responses: string[]) => void,
+) => void
+
 /** Connect one ssh2 client (resolve on ready, reject on error/close). */
-function connectClient(config: ConnectConfig): Promise<Client> {
+function connectClient(config: ConnectConfig, onKeyboardInteractive?: KeyboardInteractiveHandler): Promise<Client> {
   return new Promise((resolve, reject) => {
     const client = new Client()
     let settled = false
@@ -130,6 +140,22 @@ function connectClient(config: ConnectConfig): Promise<Client> {
       if (settled) return
       settled = true
       resolve(client)
+    })
+    client.on('keyboard-interactive', (name, instructions, instructionsLang, prompts, finish) => {
+      if (onKeyboardInteractive !== undefined) {
+        onKeyboardInteractive(name, instructions, instructionsLang, prompts.map(p => ({ prompt: p.prompt, echo: Boolean(p.echo) })), finish)
+        return
+      }
+      // Automatic PAM password fallback: when a password is configured and
+      // every prompt asks for a password, answer them all with it.
+      if (config.password !== undefined && prompts.length > 0 && prompts.every(p => /password/i.test(p.prompt))) {
+        finish(prompts.map(() => config.password as string))
+        return
+      }
+      if (!settled) {
+        settled = true
+        reject(new Error('Authentication failed (keyboard-interactive): ' + (prompts.map(p => p.prompt.trim()).join(', ') || 'unsupported interactive challenge')))
+      }
     })
     client.once('error', (error) => {
       if (settled) return
@@ -251,7 +277,7 @@ export class SshEngine {
    * order, each forwarding a stream to the next destination, ending with the
    * target client. Shared by the pool and standalone shell sessions.
    */
-  private async connectChain(entry: SshHostEntry): Promise<{ client: Client; hops: Client[] }> {
+  private async connectChain(entry: SshHostEntry, onKeyboardInteractive?: KeyboardInteractiveHandler): Promise<{ client: Client; hops: Client[] }> {
     const hops: Client[] = []
     let sock: ConnectConfig['sock']
     const chain = entry.proxyJump
@@ -262,7 +288,7 @@ export class SshEngine {
         for (const client of hops) client.end()
         throw new Error(`proxyJump alias '${hopAlias}' not found — create it first`)
       }
-      const hopClient = await connectClient(buildConnectConfig(hop, sock))
+      const hopClient = await connectClient(buildConnectConfig(hop, sock), onKeyboardInteractive)
       hops.push(hopClient)
       const next = index + 1 < chain.length ? this.store.find(chain[index + 1]) : undefined
       const nextHost = next !== undefined ? next.host : entry.host
@@ -279,7 +305,7 @@ export class SshEngine {
       })
     }
     try {
-      const client = await connectClient(buildConnectConfig(entry, sock))
+      const client = await connectClient(buildConnectConfig(entry, sock), onKeyboardInteractive)
       return { client, hops }
     } catch (error) {
       for (const client of hops) client.end()
@@ -450,12 +476,16 @@ export class SshEngine {
   // -------------------------------------------------------------- shell
 
   /** Open a PTY shell session for the web terminal (standalone connection). */
-  async openShell(alias: string, size: { cols: number; rows: number }): Promise<ShellSession> {
+  async openShell(
+    alias: string,
+    size: { cols: number; rows: number },
+    onKeyboardInteractive?: KeyboardInteractiveHandler,
+  ): Promise<ShellSession> {
     const entry = this.store.find(alias)
     if (entry === undefined) throw new Error(`alias '${alias}' not found — add it first`)
     // The shell is a long-lived exclusive stream: use its own connection so
     // closing it can never tear down a pooled exec/tunnel sharing the alias.
-    const { client, hops } = await this.connectChain(entry)
+    const { client, hops } = await this.connectChain(entry, onKeyboardInteractive)
     return await new Promise<ShellSession>((resolve, reject) => {
       client.shell({ term: 'xterm-256color', cols: size.cols, rows: size.rows }, (error, stream) => {
         if (error !== undefined) {
