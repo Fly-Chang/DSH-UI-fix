@@ -10,7 +10,7 @@ import { existsSync, mkdirSync, readFileSync, statSync, readdirSync } from 'node
 import { dirname, join, relative, resolve as resolvePath } from 'node:path'
 import { Client, type ClientChannel, type ConnectConfig } from 'ssh2'
 import type { ClusterResult, ExecResult, SshHostEntry, SshHostSummary, TestResult, TransferProgress, TunnelInfo } from './protocol.ts'
-import { expandHome, type HostStore } from './store.ts'
+import { expandHome, normalizeAgentPath, type HostStore } from './store.ts'
 
 /** Default engine knobs. */
 export interface EngineOptions {
@@ -92,6 +92,12 @@ function buildConnectConfig(entry: SshHostEntry, sock?: ConnectConfig['sock']): 
   if (sock !== undefined) config.sock = sock
   if (entry.auth.kind === 'password') {
     config.password = entry.auth.password
+  } else if (entry.auth.kind === 'agent') {
+    const agentPath = resolveAgentPath(entry.auth.agentPath)
+    if (agentPath === undefined) {
+      throw new Error('ssh-agent is not available: set SSH_AUTH_SOCK or configure an agent path (use \'pageant\' for PuTTY Pageant on Windows)')
+    }
+    config.agent = agentPath
   } else {
     const keyPath = entry.auth.keyPath === undefined ? undefined : expandHome(entry.auth.keyPath)
     if (keyPath === undefined || !existsSync(keyPath)) {
@@ -103,6 +109,16 @@ function buildConnectConfig(entry: SshHostEntry, sock?: ConnectConfig['sock']): 
     }
   }
   return config
+}
+
+/** Resolve the ssh2 agent path for 'agent' auth. */
+export function resolveAgentPath(agentPath?: string): string | undefined {
+  const explicit = normalizeAgentPath(agentPath)
+  if (explicit !== undefined) return explicit
+  const sock = process.env.SSH_AUTH_SOCK
+  if (sock !== undefined && sock !== '') return sock
+  if (process.platform === 'win32') return 'pageant'
+  return undefined
 }
 
 /** Connect one ssh2 client (resolve on ready, reject on error/close). */
