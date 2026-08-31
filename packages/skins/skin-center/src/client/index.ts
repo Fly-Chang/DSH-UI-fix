@@ -7,6 +7,7 @@
  * copies the one-command apply. The plugin writes only DOM and the settings
  * ledger — no services, no events, no model access.
  */
+import '../../../../../shared/motion.module.css'
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import type { ThemeRuntime } from '@deepseek-ai/dsh-client-ui-theme/client'
 // Type-only: pulls the locale plugin's Context merge (ctx.locale).

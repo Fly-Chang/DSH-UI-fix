@@ -4,7 +4,7 @@
   border-radius: 8px;
   background: var(--dsw-alias-bg-layer-3);
   overflow: hidden;
-  transition: border-color 0.16s, background 0.16s;
+  transition: border-color var(--dsw-motion-base), background var(--dsw-motion-base);
 }
 
 .cardOpen {
@@ -23,7 +23,7 @@
   cursor: pointer;
   text-align: left;
   font: inherit;
-  transition: background 120ms ease;
+  transition: background var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .header:hover {
@@ -64,7 +64,7 @@
 }
 
 .chevron {
-  transition: transform 120ms ease;
+  transition: transform var(--dsw-motion-fast) var(--dsw-motion-ease);
   color: var(--dsw-alias-label-tertiary);
 }
 
@@ -112,8 +112,8 @@
   font: inherit;
   font-size: 13px;
   cursor: pointer;
-  transition: color 120ms ease, border-color 120ms ease,
-    background 120ms ease, box-shadow 120ms ease;
+  transition: color var(--dsw-motion-fast) var(--dsw-motion-ease), border-color var(--dsw-motion-fast) var(--dsw-motion-ease),
+    background var(--dsw-motion-fast) var(--dsw-motion-ease), box-shadow var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .discard {
@@ -198,7 +198,7 @@
   cursor: pointer;
   padding: 0;
   border-radius: 3px;
-  transition: color 120ms ease, box-shadow 120ms ease;
+  transition: color var(--dsw-motion-fast) var(--dsw-motion-ease), box-shadow var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .reset:hover:not(:disabled) {

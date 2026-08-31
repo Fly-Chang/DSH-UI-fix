@@ -1,4 +1,4 @@
-/* Mobile remote-control seat + panel (design tokens only â€” no literal
+/* Mobile remote-control seat + panel (design tokens only â€?no literal
    colors). The trigger matches the settings row/rail geometry; the panel is
    a centered modal (mask + 560px card) like the settings panel. */
 
@@ -34,7 +34,7 @@
   color: var(--dsw-alias-label-secondary);
   cursor: pointer;
   /* Transition + focus ring consent (box-shadow from :focus-visible). */
-  transition: background-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
+  transition: background-color var(--dsw-motion-fast) var(--dsw-motion-ease), color var(--dsw-motion-fast) var(--dsw-motion-ease), box-shadow var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .trigger:hover:not(:disabled) {
@@ -78,6 +78,20 @@
      (same treatment as the balance plugin panels). */
   -webkit-backdrop-filter: blur(22px) saturate(1.2);
   backdrop-filter: blur(22px) saturate(1.2);
+  animation: dshRemotePanelIn var(--dsw-motion-slow) var(--dsw-motion-ease-out);
+}
+
+/* Panel entrance: the modal surface mounts dynamically (portal gated by
+   `open`), so the enter keyframe fades + lifts it in. */
+@keyframes dshRemotePanelIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .header {
@@ -117,7 +131,7 @@
   background: transparent;
   color: var(--dsw-alias-label-secondary);
   cursor: pointer;
-  transition: background-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
+  transition: background-color var(--dsw-motion-fast) var(--dsw-motion-ease), color var(--dsw-motion-fast) var(--dsw-motion-ease), box-shadow var(--dsw-motion-fast) var(--dsw-motion-ease), transform var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .close:hover:not(:disabled) {
@@ -126,6 +140,7 @@
 
 .close:active:not(:disabled) {
   background: var(--dsw-alias-interactive-bg-active);
+  transform: scale(0.96);
 }
 
 .close:focus-visible {
@@ -292,7 +307,7 @@
   font-size: 13px;
   cursor: pointer;
   white-space: nowrap;
-  transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+  transition: background-color var(--dsw-motion-fast) var(--dsw-motion-ease), border-color var(--dsw-motion-fast) var(--dsw-motion-ease), box-shadow var(--dsw-motion-fast) var(--dsw-motion-ease), transform var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .action:hover:not(:disabled) {
@@ -301,6 +316,7 @@
 
 .action:active:not(:disabled) {
   background: var(--dsw-alias-interactive-bg-active);
+  transform: scale(0.96);
 }
 
 .action:focus-visible {
@@ -384,7 +400,7 @@
   font-size: 13px;
   font-variant-numeric: tabular-nums;
   cursor: pointer;
-  transition: background-color 120ms ease;
+  transition: background-color var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .address:hover {
@@ -521,11 +537,15 @@
   color: var(--dsw-alias-label-primary);
   font-size: 13px;
   cursor: pointer;
-  transition: background-color 120ms ease, color 120ms ease;
+  transition: background-color var(--dsw-motion-fast) var(--dsw-motion-ease), color var(--dsw-motion-fast) var(--dsw-motion-ease), transform var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .updateRetry:hover {
   background: var(--dsw-alias-interactive-bg-active);
+}
+
+.updateRetry:active {
+  transform: scale(0.96);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -4,7 +4,7 @@
   border-radius: 8px;
   background: var(--dsw-alias-bg-layer-3);
   overflow: hidden;
-  transition: border-color 0.16s, background 0.16s;
+  transition: border-color var(--dsw-motion-base) var(--dsw-motion-ease), background var(--dsw-motion-base) var(--dsw-motion-ease);
 }
 
 .cardOpen {
@@ -53,7 +53,7 @@
 }
 
 .chevron {
-  transition: transform 120ms ease;
+  transition: transform var(--dsw-motion-fast) var(--dsw-motion-ease);
   color: var(--dsw-alias-label-tertiary);
 }
 
@@ -247,13 +247,14 @@
 
 .header:active {
   background: var(--dsw-alias-interactive-bg-hover);
+  transform: scale(0.96);
 }
 
 .header,
 .discard,
 .save,
 .reset {
-  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease, transform 120ms ease;
+  transition: background-color var(--dsw-motion-fast) var(--dsw-motion-ease), color var(--dsw-motion-fast) var(--dsw-motion-ease), border-color var(--dsw-motion-fast) var(--dsw-motion-ease), transform var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 @media (prefers-reduced-motion: reduce) {

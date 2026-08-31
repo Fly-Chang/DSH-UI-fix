@@ -25,7 +25,8 @@
   font-size: 13px;
   font-family: var(--aion-font-sans);
   cursor: pointer;
-  transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color var(--dsw-motion-base) var(--dsw-motion-ease),
+    transform var(--dsw-motion-fast) var(--dsw-motion-ease);
   white-space: nowrap;
 }
 
@@ -35,6 +36,7 @@
 
 .tabBtn:active {
   background: var(--aion-bg-active);
+  transform: scale(0.96);
 }
 
 .tabBtn:focus-visible {
@@ -52,13 +54,15 @@
   font-size: 13px;
   font-family: var(--aion-font-sans);
   cursor: pointer;
-  transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color var(--dsw-motion-base) var(--dsw-motion-ease),
+    transform var(--dsw-motion-fast) var(--dsw-motion-ease);
   white-space: nowrap;
   font-weight: 500;
 }
 
 .tabBtnActive:active {
   background: var(--aion-bg-active);
+  transform: scale(0.96);
 }
 
 .tabBtnActive:focus-visible {
@@ -81,7 +85,7 @@
   border-radius: 2px;
   background: var(--aion-bg-base);
   border: 1px solid transparent;
-  transition: border-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: border-color var(--dsw-motion-base) var(--dsw-motion-ease);
 }
 
 .searchBoxFocus {
@@ -171,7 +175,7 @@
   padding-right: 8px;
   cursor: pointer;
   border-radius: 0;
-  transition: background-color 0.12s ease;
+  transition: background-color var(--dsw-motion-fast) var(--dsw-motion-ease);
   white-space: nowrap;
   min-width: 0;
   position: relative;
@@ -224,7 +228,7 @@
   height: 14px;
   color: var(--aion-text-tertiary);
   flex-shrink: 0;
-  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform var(--dsw-motion-base) var(--dsw-motion-ease);
 }
 
 .treeArrowOpen {
@@ -263,7 +267,7 @@
   padding: 0 8px 0 12px;
   cursor: pointer;
   white-space: nowrap;
-  transition: background-color 0.12s ease;
+  transition: background-color var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .resultRow:hover {

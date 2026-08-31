@@ -43,3 +43,20 @@
   dsh-balance-plugin（bmon-overlay-card）、dsh-ssh（panel）、dsh-task-board（board view）、
   dsh-remote-web-ui（panel）、dsh-aionui-panel（两侧把手命中区翻转进面板，不遮挡滚动条）。
 
+## 统一动效令牌约定（2026-08-30 起，用户偏好）
+
+- 所有插件 UI 的过渡/动画时长与缓动必须使用共享动效令牌，禁止再写硬编码
+  `120ms ease` 之类的字面量：
+  - 时长：`--dsw-motion-instant`(60ms 按压) / `--dsw-motion-fast`(120ms 悬浮) /
+    `--dsw-motion-base`(180ms 表面) / `--dsw-motion-slow`(260ms 面板/弹层) /
+    `--dsw-motion-gentle`(400ms 氛围)。
+  - 缓动：`--dsw-motion-ease`（状态过渡）/ `--dsw-motion-ease-in`（离场）/
+    `--dsw-motion-ease-out`（入场）/ `--dsw-motion-spring`（小弹层）。
+  - 令牌唯一事实源：`shared/motion.module.css`，各包 client 入口以副作用导入：
+    `import '../../../../shared/motion.module.css'`（skins 子目录多一层 `../`）。
+    令牌内含 `prefers-reduced-motion` 归零；各包保留各自的 reduced-motion 块。
+- 微交互默认：可点击元素按压 `transform: scale(0.96)`；卡片/徽章悬浮
+  `translateY(-1px ~ -2px)`；弹层入场用 spring/ease-out 淡入缩放。仅动
+  `transform`/`opacity`（GPU 合成），不动布局属性；拖拽中的元素不加按压缩放。
+- 审计：`node scripts/motion-audit.mjs` 扫描残留硬编码时长与 emoji 违规。
+

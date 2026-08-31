@@ -1,0 +1,41 @@
+/**
+ * Shared motion tokens for every dsh-web-ui client bundle ("silk" layer).
+ * Single source of truth — imported as a side-effect import from each
+ * package's client entry; the tsdown CSS-inline preset injects it as a
+ * <style data-plugin> tag per plugin (values are idempotent, so duplicate
+ * injections are harmless).
+ *
+ * The --dsw-motion-* namespace mirrors the shell's --dsw-* theme tokens.
+ * Timing model: instant (press feedback) < fast (hover state) < base
+ * (surface state) < slow (panels/dialogs) < gentle (hero/ambient).
+ * Easings follow the standard decelerate/accelerate pair plus a soft spring
+ * reserved for small popovers and playful entrances.
+ *
+ * prefers-reduced-motion collapses every duration to zero; packages that
+ * additionally kill animations/transitions in their own media blocks keep
+ * working unchanged.
+ */
+:global(:root) {
+  /* durations */
+  --dsw-motion-instant: 60ms;
+  --dsw-motion-fast: 120ms;
+  --dsw-motion-base: 180ms;
+  --dsw-motion-slow: 260ms;
+  --dsw-motion-gentle: 400ms;
+
+  /* easings */
+  --dsw-motion-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --dsw-motion-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --dsw-motion-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --dsw-motion-spring: cubic-bezier(0.34, 1.12, 0.5, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global(:root) {
+    --dsw-motion-instant: 0ms;
+    --dsw-motion-fast: 0ms;
+    --dsw-motion-base: 0ms;
+    --dsw-motion-slow: 0ms;
+    --dsw-motion-gentle: 0ms;
+  }
+}

@@ -23,6 +23,7 @@
  * @module dsh-git-graph/client
  */
 
+import '../../../../shared/motion.module.css'
 import type { ClientContext, SessionId } from '@deepseek-ai/dsh-client-runtime/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 // Type-only: pulls the ui-conversation SlotMap merge (the conversation

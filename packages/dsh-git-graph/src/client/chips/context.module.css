@@ -19,15 +19,17 @@
   font-size: 12px;
   line-height: 1;
   white-space: nowrap;
-  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+  transition: background-color var(--dsw-motion-fast) var(--dsw-motion-ease), border-color var(--dsw-motion-fast) var(--dsw-motion-ease), color var(--dsw-motion-fast) var(--dsw-motion-ease), transform var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .chip:hover {
   background: var(--dsw-alias-interactive-bg-hover);
+  transform: translateY(-1px);
 }
 
 .chip:active {
   background: var(--dsw-alias-interactive-bg-active);
+  transform: scale(0.96);
 }
 
 .chip:focus-visible {
@@ -81,6 +83,7 @@
   background: var(--dsw-alias-bg-overlay);
   box-shadow: 0 8px 24px var(--dsw-alias-bg-mask-2);
   overflow: hidden;
+  animation: dshGgSurfaceIn var(--dsw-motion-base) var(--dsw-motion-spring);
 }
 
 .searchBox {
@@ -93,7 +96,7 @@
   border-radius: 8px;
   background: var(--dsw-alias-bg-base);
   color: var(--dsw-alias-label-primary);
-  transition: border-color 120ms ease, box-shadow 120ms ease;
+  transition: border-color var(--dsw-motion-fast) var(--dsw-motion-ease), box-shadow var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .searchBox:focus-within {
@@ -109,7 +112,7 @@
   background: none;
   color: var(--dsw-alias-label-primary);
   font-size: 13px;
-  transition: box-shadow 120ms ease;
+  transition: box-shadow var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .searchInput::placeholder {
@@ -132,7 +135,7 @@
   border-radius: 8px;
   cursor: pointer;
   text-align: left;
-  transition: background-color 120ms ease;
+  transition: background-color var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .item:hover {
@@ -235,7 +238,7 @@
   color: var(--dsw-alias-label-primary);
   font-size: 13px;
   text-align: left;
-  transition: background-color 120ms ease;
+  transition: background-color var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .footerItem:hover {
@@ -290,6 +293,7 @@
   background: var(--dsw-alias-bg-overlay);
   box-shadow: 0 12px 32px var(--dsw-alias-bg-mask-2);
   padding: 16px 16px 12px;
+  animation: dshGgSurfaceFadeIn var(--dsw-motion-slow) var(--dsw-motion-ease-out);
 }
 
 .dialogHeader {
@@ -317,7 +321,7 @@
   background: none;
   color: var(--dsw-alias-label-tertiary);
   cursor: pointer;
-  transition: background-color 120ms ease, color 120ms ease;
+  transition: background-color var(--dsw-motion-fast) var(--dsw-motion-ease), color var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .dialogClose:hover {
@@ -367,7 +371,7 @@
   color: var(--dsw-alias-label-primary);
   font-size: 13px;
   outline: none;
-  transition: border-color 120ms ease, box-shadow 120ms ease;
+  transition: border-color var(--dsw-motion-fast) var(--dsw-motion-ease), box-shadow var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .dialogInput:focus {
@@ -399,7 +403,7 @@
   color: var(--dsw-alias-label-primary);
   cursor: pointer;
   font-size: 13px;
-  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+  transition: background-color var(--dsw-motion-fast) var(--dsw-motion-ease), border-color var(--dsw-motion-fast) var(--dsw-motion-ease), color var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .dialogButton:hover {
@@ -428,7 +432,7 @@
   border-color: var(--dsw-alias-brand-primary);
   background: var(--dsw-alias-brand-primary);
   color: var(--dsw-alias-button-contrast-fill);
-  transition: background-color 120ms ease, border-color 120ms ease, filter 120ms ease;
+  transition: background-color var(--dsw-motion-fast) var(--dsw-motion-ease), border-color var(--dsw-motion-fast) var(--dsw-motion-ease), filter var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .dialogButtonPrimary:hover {
@@ -586,7 +590,7 @@
   color: var(--dsw-alias-label-secondary);
   cursor: pointer;
   font-size: 12px;
-  transition: background-color 120ms ease;
+  transition: background-color var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .graphMore:hover {
@@ -600,6 +604,20 @@
 .graphMore:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px var(--dsw-alias-brand-primary);
+}
+
+/* Surface enter animations: the small anchored popover scales in with a soft
+   spring; modal dialogs are transform-positioned (translate centering), so
+   they fade in opacity only and never move. Token durations collapse to zero
+   under prefers-reduced-motion via the shared motion tokens. */
+@keyframes dshGgSurfaceIn {
+  from { opacity: 0; transform: scale(0.97) translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes dshGgSurfaceFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -4,7 +4,7 @@
   border-radius: 6px;
   background: var(--dsw-alias-bg-layer-2);
   overflow: hidden;
-  transition: border-color 120ms ease, background 120ms ease;
+  transition: border-color var(--dsw-motion-fast) var(--dsw-motion-ease), background var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .header {
@@ -19,7 +19,7 @@
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: background 120ms ease;
+  transition: background var(--dsw-motion-fast) var(--dsw-motion-ease), transform var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .header:hover {
@@ -28,6 +28,7 @@
 
 .header:active {
   background: var(--dsw-alias-interactive-bg-hover-solid);
+  transform: scale(0.97);
 }
 
 .header:focus-visible {
@@ -69,7 +70,7 @@
   font-size: 13px;
   flex: none;
   margin-left: 10px;
-  transition: transform 120ms ease, color 120ms ease;
+  transition: transform var(--dsw-motion-fast) var(--dsw-motion-ease), color var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .chevronOpen {

@@ -47,7 +47,7 @@
   height: 100%;
   flex-shrink: 0;
   cursor: pointer;
-  transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color var(--dsw-motion-base) var(--dsw-motion-ease);
   user-select: none;
   border-right: 1px solid transparent;
 }
@@ -121,6 +121,8 @@
   border-radius: 9999px;
   flex-shrink: 0;
   background: var(--aion-success);
+  /* Ambient breathing pulse: decorative animation, exempt from the motion
+     tokens (the gentle token would quadruple the cadence). */
   animation: aionui-pulse 1.6s ease-in-out infinite;
 }
 
@@ -138,7 +140,7 @@
   border-radius: 4px;
   flex-shrink: 0;
   color: var(--aion-text-secondary);
-  transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color var(--dsw-motion-base) var(--dsw-motion-ease);
 }
 
 .tabClose:hover {
@@ -166,7 +168,7 @@
   cursor: pointer;
   align-self: center;
   flex-shrink: 0;
-  transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color var(--dsw-motion-base) var(--dsw-motion-ease);
 }
 
 .tabPlus:hover {
@@ -198,7 +200,7 @@
   border-radius: 4px;
   color: var(--aion-text-secondary);
   cursor: pointer;
-  transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color var(--dsw-motion-base) var(--dsw-motion-ease);
 }
 
 .panelCollapse:hover {
@@ -291,7 +293,9 @@
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
-  transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color var(--dsw-motion-base) var(--dsw-motion-ease),
+    color var(--dsw-motion-base) var(--dsw-motion-ease),
+    transform var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .toolbarBtn:hover {
@@ -302,6 +306,7 @@
 .toolbarBtn:active {
   background: var(--aion-bg-active);
   color: var(--aion-text-primary);
+  transform: scale(0.96);
 }
 
 .toolbarBtn:focus-visible {
@@ -800,7 +805,8 @@
   border-radius: 9999px;
   background: var(--aion-bg-3);
   opacity: 0.9;
-  transition: width 0.15s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width var(--dsw-motion-base) var(--dsw-motion-ease),
+    background-color var(--dsw-motion-base) var(--dsw-motion-ease);
   pointer-events: none;
 }
 

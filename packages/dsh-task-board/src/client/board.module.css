@@ -283,7 +283,7 @@ html[data-dsh-taskboard-active]:not([data-dsh-ssh-active]) [data-pane='conversat
   cursor: pointer;
   color: var(--dsw-alias-label-primary);
   font-family: inherit;
-  transition: box-shadow 120ms ease, border-color 120ms ease, transform 120ms ease;
+  transition: box-shadow var(--dsw-motion-fast) var(--dsw-motion-ease), border-color var(--dsw-motion-fast) var(--dsw-motion-ease), transform var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .card:hover {
@@ -481,6 +481,18 @@ html[data-dsh-taskboard-active]:not([data-dsh-ssh-active]) [data-pane='conversat
   text-decoration: underline;
 }
 
+/* --- dialog/popover entrance (tokens from shared/motion.module.css) ----------- */
+
+@keyframes dshTbSurfaceIn {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes dshTbFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 /* --- modals ------------------------------------------------------------------- */
 
 .modalBackdrop {
@@ -491,6 +503,7 @@ html[data-dsh-taskboard-active]:not([data-dsh-ssh-active]) [data-pane='conversat
   align-items: center;
   justify-content: center;
   background: var(--dsw-alias-bg-mask-1);
+  animation: dshTbFadeIn var(--dsw-motion-slow) var(--dsw-motion-ease-out);
 }
 
 .modal {
@@ -506,6 +519,7 @@ html[data-dsh-taskboard-active]:not([data-dsh-ssh-active]) [data-pane='conversat
   border-radius: 14px;
   box-shadow: var(--dsw-shadow-lv3);
   color: var(--dsw-alias-label-primary);
+  animation: dshTbSurfaceIn var(--dsw-motion-slow) var(--dsw-motion-ease-out);
 }
 
 .modalTitle {
@@ -581,6 +595,7 @@ html[data-dsh-taskboard-active]:not([data-dsh-ssh-active]) [data-pane='conversat
   box-shadow: var(--dsw-shadow-lv3);
   color: var(--dsw-alias-label-primary);
   overflow: hidden;
+  animation: dshTbSurfaceIn var(--dsw-motion-slow) var(--dsw-motion-ease-out);
 }
 
 .detailHeader {
@@ -806,7 +821,7 @@ html[data-dsh-taskboard-active]:not([data-dsh-ssh-active]) [data-pane='conversat
 
 /* -----------------------------------------------------------------------------
  * Polish pass: complete interaction states (hover / active / focus-visible /
- * disabled), unified 120ms motion, and reduced-motion fallback.
+ * disabled), unified tokenized motion, and reduced-motion fallback.
  * Colors use the --dsw-alias-* design tokens, which adapt to light/dark/skins
  * automatically, so every rule below is dark-safe by construction.
  * --------------------------------------------------------------------------- */
@@ -827,7 +842,7 @@ html[data-dsh-taskboard-active]:not([data-dsh-ssh-active]) [data-pane='conversat
   outline-offset: 2px;
 }
 
-/* --- unified 120ms motion across the board's interactive controls --- */
+/* --- unified tokenized motion across the board's interactive controls --- */
 .entry,
 .primaryButton,
 .ghostButton,
@@ -838,7 +853,7 @@ html[data-dsh-taskboard-active]:not([data-dsh-ssh-active]) [data-pane='conversat
 .input,
 .schedulePreset,
 .scheduleToggle input {
-  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease, outline-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+  transition: background-color var(--dsw-motion-fast) var(--dsw-motion-ease), color var(--dsw-motion-fast) var(--dsw-motion-ease), border-color var(--dsw-motion-fast) var(--dsw-motion-ease), outline-color var(--dsw-motion-fast) var(--dsw-motion-ease), box-shadow var(--dsw-motion-fast) var(--dsw-motion-ease), transform var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 /* --- press (active) feedback --- */
@@ -847,13 +862,16 @@ html[data-dsh-taskboard-active]:not([data-dsh-ssh-active]) [data-pane='conversat
   transform: translateY(0);
 }
 
-.entry:active,
+.entry:active {
+  transform: translateY(1px);
+}
+
 .primaryButton:active:not(:disabled),
 .ghostButton:active:not(:disabled),
 .dangerButton:active:not(:disabled),
 .iconButton:active:not(:disabled),
 .linkButton:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: scale(0.96);
 }
 
 /* --- entry row (sidebar) states --- */
@@ -924,6 +942,7 @@ html[data-dsh-taskboard-active]:not([data-dsh-ssh-active]) [data-pane='conversat
   backdrop-filter: blur(22px) saturate(1.2);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
   user-select: none;
+  animation: dshTbSurfaceIn var(--dsw-motion-fast) var(--dsw-motion-spring);
 }
 
 .cardMenuItem {

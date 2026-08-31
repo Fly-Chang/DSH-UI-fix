@@ -147,6 +147,11 @@ html[data-dsh-ssh-active]:not([data-dsh-taskboard-active]) [data-pane='conversat
   border-radius: 6px 6px 0 0;
   cursor: pointer;
   white-space: nowrap;
+  transition: transform var(--dsw-motion-fast) var(--dsw-motion-ease);
+}
+
+.tab:active {
+  transform: scale(0.96);
 }
 
 .tab:hover {
@@ -264,6 +269,7 @@ html[data-dsh-ssh-active]:not([data-dsh-taskboard-active]) [data-pane='conversat
   padding: 7px 10px;
   border-bottom: 1px solid var(--dsw-alias-separator-primary);
   vertical-align: top;
+  transition: background-color var(--dsw-motion-fast) var(--dsw-motion-ease), color var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .table tbody tr:last-child td {
@@ -355,6 +361,11 @@ html[data-dsh-ssh-active]:not([data-dsh-taskboard-active]) [data-pane='conversat
   border-radius: 8px;
   cursor: pointer;
   white-space: nowrap;
+  transition: transform var(--dsw-motion-fast) var(--dsw-motion-ease);
+}
+
+.primaryButton:active {
+  transform: scale(0.96);
 }
 
 .primaryButton:hover:not(:disabled) {
@@ -375,6 +386,11 @@ html[data-dsh-ssh-active]:not([data-dsh-taskboard-active]) [data-pane='conversat
   border-radius: 8px;
   cursor: pointer;
   white-space: nowrap;
+  transition: transform var(--dsw-motion-fast) var(--dsw-motion-ease);
+}
+
+.ghostButton:active {
+  transform: scale(0.96);
 }
 
 .ghostButton:hover:not(:disabled) {
@@ -399,6 +415,11 @@ html[data-dsh-ssh-active]:not([data-dsh-taskboard-active]) [data-pane='conversat
   color: var(--dsw-alias-label-secondary);
   cursor: pointer;
   font-size: 13px;
+  transition: transform var(--dsw-motion-fast) var(--dsw-motion-ease);
+}
+
+.iconButton:active {
+  transform: scale(0.96);
 }
 
 .iconButton:hover {
@@ -414,6 +435,11 @@ html[data-dsh-ssh-active]:not([data-dsh-taskboard-active]) [data-pane='conversat
   border: none;
   cursor: pointer;
   white-space: nowrap;
+  transition: transform var(--dsw-motion-fast) var(--dsw-motion-ease);
+}
+
+.linkButton:active {
+  transform: scale(0.96);
 }
 
 .linkButton:hover:not(:disabled) {
@@ -689,6 +715,11 @@ html[data-dsh-ssh-active]:not([data-dsh-taskboard-active]) [data-pane='conversat
   border: none;
   border-bottom: 1px solid var(--dsw-alias-separator-primary);
   cursor: pointer;
+  transition: transform var(--dsw-motion-fast) var(--dsw-motion-ease);
+}
+
+.dirRow:active {
+  transform: scale(0.96);
 }
 
 .dirRow:hover {
@@ -747,7 +778,7 @@ html[data-dsh-ssh-active]:not([data-dsh-taskboard-active]) [data-pane='conversat
   height: 100%;
   border-radius: 999px;
   background: var(--dsw-alias-state-business-primary);
-  transition: width 120ms linear;
+  transition: width var(--dsw-motion-base) var(--dsw-motion-ease);
 }
 
 /* --- tunnels ------------------------------------------------------------------ */

@@ -5,7 +5,7 @@
   background: var(--dsw-alias-bg-layer-3);
   overflow: hidden;
   min-width: 0;
-  transition: border-color 0.16s, background 0.16s;
+  transition: border-color var(--dsw-motion-base), background var(--dsw-motion-base);
 }
 
 .cardOpen {
@@ -25,6 +25,7 @@
   cursor: pointer;
   text-align: left;
   font: inherit;
+  transition: transform var(--dsw-motion-fast) var(--dsw-motion-ease);
 }
 
 .header:hover:not(:disabled) {
@@ -33,6 +34,7 @@
 
 .header:active:not(:disabled) {
   background: var(--dsw-alias-interactive-bg-active);
+  transform: scale(0.97);
 }
 
 .header:focus-visible {
@@ -73,7 +75,7 @@
 }
 
 .chevron {
-  transition: transform 120ms ease;
+  transition: transform var(--dsw-motion-fast) var(--dsw-motion-ease);
   color: var(--dsw-alias-label-tertiary);
   flex: none;
   font-size: 13px;
@@ -123,7 +125,7 @@
   font: inherit;
   font-size: 13px;
   cursor: pointer;
-  transition: background-color 0.13s, border-color 0.13s, color 0.13s;
+  transition: background-color var(--dsw-motion-fast), border-color var(--dsw-motion-fast), color var(--dsw-motion-fast);
 }
 
 .discard {
@@ -251,7 +253,7 @@
   font-variant-numeric: tabular-nums;
   color: var(--dsw-alias-label-primary);
   background: var(--dsw-specific-input-major);
-  transition: border-color 0.13s, box-shadow 0.13s;
+  transition: border-color var(--dsw-motion-fast), box-shadow var(--dsw-motion-fast);
 }
 
 .input:hover:not(:disabled),
@@ -273,7 +275,7 @@
   font-size: 13px;
   font-variant-numeric: tabular-nums;
   color: var(--dsw-alias-label-primary);
-  transition: border-color 0.13s, box-shadow 0.13s;
+  transition: border-color var(--dsw-motion-fast), box-shadow var(--dsw-motion-fast);
 }
 
 .inputInvalid:hover:not(:disabled) {

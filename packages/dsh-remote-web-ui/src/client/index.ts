@@ -6,6 +6,7 @@
  * one-time failed-pair notice. Export discipline: packages/client/AGENTS.md
  * — the /client surface carries only what cordis loading needs plus types.
  */
+import '../../../../shared/motion.module.css'
 import { createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'

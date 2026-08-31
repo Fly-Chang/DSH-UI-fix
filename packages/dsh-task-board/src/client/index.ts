@@ -8,6 +8,8 @@
  * shell fails the whole boot when a plugin apply throws, and an external
  * plugin must not take the GUI down.
  */
+import '../../../../shared/motion.module.css'
+
 import type { ClientContext, SessionId, WorkspaceId } from '@deepseek-ai/dsh-client-runtime/client'
 import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 import type {} from '@deepseek-ai/dsh-client-ui-slots'

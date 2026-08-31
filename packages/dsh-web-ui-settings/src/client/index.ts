@@ -7,6 +7,7 @@
  * family plugin.
  */
 
+import '../../../../shared/motion.module.css'
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 // Type-only: pulls the locale plugin's Context merge (ctx.locale).
 import type {} from '@deepseek-ai/dsh-client-locale/client'
