@@ -53,14 +53,14 @@ export function SshPanel({ controller, api }: SshPanelProps) {
   }
 
   return (
-    <div className={css.panel}>
+    <div className={css.panel} data-dsh-plugin="ssh">
       <div className={css.panelHeader}>
         <h2 className={css.panelTitle}>{tt('panel.title')}</h2>
         <button type="button" className={css.iconButton} title={tt('common.close')} aria-label={tt('common.close')} onClick={() => { controller.close() }}>x</button>
       </div>
-      <div className={css.tabBar} role="tablist">
+      <div className={css.tabBar} role="tablist" data-dsh-part="tab-bar">
         {TABS.map(tab => (
-          <button key={tab.id} type="button" role="tab" aria-selected={activeTab === tab.id} data-active={activeTab === tab.id ? '' : undefined} className={css.tab} onClick={() => { setActiveTab(tab.id) }}>
+          <button key={tab.id} type="button" role="tab" aria-selected={activeTab === tab.id} data-active={activeTab === tab.id ? '' : undefined} data-dsh-part="tab" className={css.tab} onClick={() => { setActiveTab(tab.id) }}>
             {tab.label()}
           </button>
         ))}

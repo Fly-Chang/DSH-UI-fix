@@ -31,16 +31,20 @@ export function HostsTab({ api, onConnect }: HostsTabProps) {
   const [notice, setNotice] = useState<string | null>(null)
   const [dialog, setDialog] = useState<DialogState | null>(null)
   const seqRef = useRef(0)
+  // Every async setState path guards with mountedRef: a promise settling
+  // after unmount must not setState against the torn-down component.
+  const mountedRef = useRef(true)
+  useEffect(() => () => { mountedRef.current = false }, [])
 
   const load = useCallback(async (query?: string): Promise<void> => {
     const seq = ++seqRef.current
     try {
       const list = await api.listHosts(query)
-      if (seq !== seqRef.current) return
+      if (!mountedRef.current || seq !== seqRef.current) return
       setHosts(list)
       setError(null)
     } catch (cause) {
-      if (seq !== seqRef.current) return
+      if (!mountedRef.current || seq !== seqRef.current) return
       setError(errorMessage(cause))
     }
   }, [api])
@@ -57,14 +61,17 @@ export function HostsTab({ api, onConnect }: HostsTabProps) {
   }, [search, load])
 
   const runTest = async (alias: string): Promise<void> => {
+    if (!mountedRef.current) return
     setTestingAlias(alias)
     try {
       const result = await api.testHost(alias)
+      if (!mountedRef.current) return
       setTestResults(prev => ({ ...prev, [alias]: result }))
     } catch (cause) {
+      if (!mountedRef.current) return
       setTestResults(prev => ({ ...prev, [alias]: { ok: false, error: errorMessage(cause) } }))
     } finally {
-      setTestingAlias(null)
+      if (mountedRef.current) setTestingAlias(null)
     }
   }
 
@@ -72,22 +79,27 @@ export function HostsTab({ api, onConnect }: HostsTabProps) {
     if (!window.confirm(tt('hosts.deleteConfirm', { alias }))) return
     try {
       await api.deleteHost(alias)
+      if (!mountedRef.current) return
       void load()
     } catch (cause) {
+      if (!mountedRef.current) return
       setError(errorMessage(cause))
     }
   }
 
   const importConfig = async (): Promise<void> => {
+    if (!mountedRef.current) return
     setImporting(true)
     try {
       const result = await api.importSshConfig()
+      if (!mountedRef.current) return
       setNotice(tt('hosts.imported', { parsed: result.parsed, added: result.added, skipped: result.skipped }))
       void load()
     } catch (cause) {
+      if (!mountedRef.current) return
       setError(errorMessage(cause))
     } finally {
-      setImporting(false)
+      if (mountedRef.current) setImporting(false)
     }
   }
 
